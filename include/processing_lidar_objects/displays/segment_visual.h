@@ -35,68 +35,38 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <rviz/panel.h>
-#include <std_srvs/Empty.h>
+#ifndef Q_MOC_RUN
+#include <processing_lidar_objects/Obstacles.h>
 
-#include <QLabel>
-#include <QFrame>
-#include <QCheckBox>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QGroupBox>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 
-namespace obstacle_detector
+#include <rviz/ogre_helpers/line.h>
+#include <rviz/ogre_helpers/billboard_line.h>
+#endif
+
+namespace obstacles_display
 {
 
-class ObstacleTrackerPanel : public rviz::Panel
+class SegmentVisual
 {
-Q_OBJECT
 public:
-  ObstacleTrackerPanel(QWidget* parent = 0);
+  SegmentVisual(Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
 
-  virtual void load(const rviz::Config& config);
-  virtual void save(rviz::Config config) const;
+  virtual ~SegmentVisual();
 
-private Q_SLOTS:
-  void processInputs();
-
-private:
-  void verifyInputs();
-  void setParams();
-  void getParams();
-  void evaluateParams();
-  void notifyParamsUpdate();
+  void setData(const processing_lidar_objects::SegmentObstacle& segment);
+  void setFramePosition(const Ogre::Vector3& position);
+  void setFrameOrientation(const Ogre::Quaternion& orientation);
+  void setColor(float r, float g, float b, float a);
+  void setWidth(float w);
 
 private:
-  QCheckBox* activate_checkbox_;
+  boost::shared_ptr<rviz::BillboardLine> line_;
 
-  QLineEdit* tracking_duration_input_;
-  QLineEdit* loop_rate_input_;
-  QLineEdit* min_corr_cost_input_;
-  QLineEdit* std_corr_dev_input_;
-  QLineEdit* process_var_input_;
-  QLineEdit* process_rate_var_input_;
-  QLineEdit* measure_var_input_;
-
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
-
-  ros::ServiceClient params_cli_;
-
-  // Parameters
-  bool p_active_;
-
-  double p_tracking_duration_;
-  double p_loop_rate_;
-  double p_min_correspondence_cost_;
-  double p_std_correspondence_dev_;
-  double p_process_variance_;
-  double p_process_rate_variance_;
-  double p_measurement_variance_;
+  Ogre::SceneNode* frame_node_;
+  Ogre::SceneManager* scene_manager_;
 };
 
-}
+} // end namespace obstacles_display

@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/obstacle_tracker.h"
+#include "processing_lidar_objects/obstacle_tracker.h"
 
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "obstacle_tracker", ros::init_options::NoRosout);

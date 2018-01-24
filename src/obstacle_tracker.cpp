@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/obstacle_tracker.h"
+#include "processing_lidar_objects/obstacle_tracker.h"
 
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 using namespace arma;
 using namespace std;
 
@@ -92,12 +92,12 @@ bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empt
   if (p_active_ != prev_active) {
     if (p_active_) {
       obstacles_sub_ = nh_.subscribe("raw_obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
-      obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
+      obstacles_pub_ = nh_.advertise<processing_lidar_objects::Obstacles>("tracked_obstacles", 10);
       timer_.start();
     }
     else {
       // Send empty message
-      obstacle_detector::ObstaclesPtr obstacles_msg(new obstacle_detector::Obstacles);
+      processing_lidar_objects::ObstaclesPtr obstacles_msg(new processing_lidar_objects::Obstacles);
       obstacles_msg->header.frame_id = obstacles_.header.frame_id;
       obstacles_msg->header.stamp = ros::Time::now();
       obstacles_pub_.publish(obstacles_msg);
@@ -120,7 +120,7 @@ void ObstacleTracker::timerCallback(const ros::TimerEvent&) {
   publishObstacles();
 }
 
-void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr new_obstacles) {
+void ObstacleTracker::obstaclesCallback(const processing_lidar_objects::Obstacles::ConstPtr new_obstacles) {
   if (new_obstacles->circles.size() > 0)
     radius_margin_ = new_obstacles->circles[0].radius - new_obstacles->circles[0].true_radius;
 
@@ -463,7 +463,7 @@ void ObstacleTracker::updateObstacles() {
 }
 
 void ObstacleTracker::publishObstacles() {
-  obstacle_detector::ObstaclesPtr obstacles_msg(new obstacle_detector::Obstacles);
+  processing_lidar_objects::ObstaclesPtr obstacles_msg(new processing_lidar_objects::Obstacles);
 
   obstacles_.circles.clear();
 

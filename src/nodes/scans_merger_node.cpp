@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/scans_merger.h"
+#include "processing_lidar_objects/scans_merger.h"
 
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "scans_merger", ros::init_options::NoRosout);

@@ -36,64 +36,62 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <rviz/panel.h>
+#include <tf/transform_listener.h>
 #include <std_srvs/Empty.h>
+#include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud.h>
+#include <processing_lidar_objects/Obstacles.h>
 
-#include <QLabel>
-#include <QFrame>
-#include <QCheckBox>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QGroupBox>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
+#include "processing_lidar_objects/utilities/point.h"
+#include "processing_lidar_objects/utilities/segment.h"
+#include "processing_lidar_objects/utilities/circle.h"
+#include "processing_lidar_objects/utilities/point_set.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
-class ObstacleExtractorPanel : public rviz::Panel
+class ObstacleExtractor
 {
-Q_OBJECT
 public:
-  ObstacleExtractorPanel(QWidget* parent = 0);
-
-  virtual void load(const rviz::Config& config);
-  virtual void save(rviz::Config config) const;
-
-private Q_SLOTS:
-  void processInputs();
+  ObstacleExtractor(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
+  ~ObstacleExtractor();
 
 private:
-  void verifyInputs();
-  void setParams();
-  void getParams();
-  void evaluateParams();
-  void notifyParamsUpdate();
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+  void scanCallback(const sensor_msgs::LaserScan::ConstPtr scan_msg);
+  void pclCallback(const sensor_msgs::PointCloud::ConstPtr pcl_msg);
 
-private:
-  QCheckBox* activate_checkbox_;
-  QCheckBox* use_scan_checkbox_;
-  QCheckBox* use_pcl_checkbox_;
-  QCheckBox* use_split_merge_checkbox_;
-  QCheckBox* circ_from_visib_checkbox_;
-  QCheckBox* discard_segments_checkbox_;
-  QCheckBox* transform_coords_checkbox_;
+  void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
 
-  QLineEdit* min_n_input_;
-  QLineEdit* dist_prop_input_;
-  QLineEdit* group_dist_input_;
-  QLineEdit* split_dist_input_;
-  QLineEdit* merge_sep_input_;
-  QLineEdit* merge_spread_input_;
-  QLineEdit* max_radius_input_;
-  QLineEdit* radius_enl_input_;
-  QLineEdit* frame_id_input_;
+  void processPoints();
+  void groupPoints();
+  void publishObstacles();
+
+  void detectSegments(const PointSet& point_set);
+  void mergeSegments();
+  bool compareSegments(const Segment& s1, const Segment& s2, Segment& merged_segment);
+  bool checkSegmentsProximity(const Segment& s1, const Segment& s2);
+  bool checkSegmentsCollinearity(const Segment& segment, const Segment& s1, const Segment& s2);
+
+  void detectCircles();
+  void mergeCircles();
+  bool compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle);
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
-  ros::ServiceClient params_cli_;
+  ros::Subscriber scan_sub_;
+  ros::Subscriber pcl_sub_;
+  ros::Publisher obstacles_pub_;
+  ros::ServiceServer params_srv_;
+
+  ros::Time stamp_;
+  std::string base_frame_id_;
+  tf::TransformListener tf_listener_;
+
+  std::list<Point> input_points_;
+  std::list<Segment> segments_;
+  std::list<Circle> circles_;
 
   // Parameters
   bool p_active_;
@@ -109,14 +107,18 @@ private:
 
   double p_distance_proportion_;
   double p_max_group_distance_;
-
   double p_max_split_distance_;
   double p_max_merge_separation_;
   double p_max_merge_spread_;
   double p_max_circle_radius_;
   double p_radius_enlargement_;
 
+  double p_min_x_limit_;
+  double p_max_x_limit_;
+  double p_min_y_limit_;
+  double p_max_y_limit_;
+
   std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

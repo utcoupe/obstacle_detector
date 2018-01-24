@@ -35,54 +35,24 @@
 
 #pragma once
 
-#ifndef Q_MOC_RUN
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <list>
 
-#include <obstacle_detector/Obstacles.h>
-#include <tf/transform_listener.h>
+#include "processing_lidar_objects/utilities/point.h"
 
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/message_filter_display.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/frame_manager.h>
-
-#include "obstacle_detector/displays/circle_visual.h"
-#include "obstacle_detector/displays/segment_visual.h"
-#endif
-
-namespace obstacles_display
+namespace processing_lidar_objects
 {
 
-class ObstaclesDisplay: public rviz::MessageFilterDisplay<obstacle_detector::Obstacles>
+typedef std::list<Point>::iterator PointIterator;
+
+class PointSet
 {
-Q_OBJECT
 public:
-  ObstaclesDisplay();
-  virtual ~ObstaclesDisplay();
+  PointSet() : num_points(0), is_visible(false) {}
 
-protected:
-  virtual void onInitialize();
-  virtual void reset();
-
-private Q_SLOTS:
-  void updateCircleColor();
-  void updateSegmentColor();
-  void updateAlpha();
-  void updateThickness();
-
-private:
-  void processMessage(const obstacle_detector::Obstacles::ConstPtr& obstacles_msg);
-
-  std::vector< boost::shared_ptr<CircleVisual> > circle_visuals_;
-  std::vector< boost::shared_ptr<SegmentVisual> > segment_visuals_;
-
-  rviz::ColorProperty* circle_color_property_;
-  rviz::ColorProperty* margin_color_property_;
-  rviz::ColorProperty* segment_color_property_;
-  rviz::FloatProperty* alpha_property_;
-  rviz::FloatProperty* thickness_property_;
+  PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
+  int num_points;
+  bool is_visible;  // The point set is not occluded by any other point set
 };
 
-} // end namespace obstacles_display
+} // namespace processing_lidar_objects
+

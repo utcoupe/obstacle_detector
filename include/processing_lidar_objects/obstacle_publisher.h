@@ -37,9 +37,9 @@
 
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
-#include <obstacle_detector/Obstacles.h>
+#include <processing_lidar_objects/Obstacles.h>
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class ObstaclePublisher
@@ -67,7 +67,7 @@ private:
   ros::ServiceServer params_srv_;
   ros::Timer timer_;
 
-  obstacle_detector::Obstacles obstacles_;
+  processing_lidar_objects::Obstacles obstacles_;
   double t_;
 
   // Parameters
@@ -90,4 +90,4 @@ private:
   std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

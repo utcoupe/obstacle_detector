@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/panels/obstacle_publisher_panel.h"
+#include "processing_lidar_objects/panels/obstacle_publisher_panel.h"
 
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 using namespace std;
 
 ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("obstacle_publisher") {
@@ -325,4 +325,4 @@ void ObstaclePublisherPanel::load(const rviz::Config& config) {
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacle_detector::ObstaclePublisherPanel, rviz::Panel)
+PLUGINLIB_EXPORT_CLASS(processing_lidar_objects::ObstaclePublisherPanel, rviz::Panel)

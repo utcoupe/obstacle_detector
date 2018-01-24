@@ -1,31 +1,31 @@
-<library path="lib/libobstacle_detector_nodelets">
+<library path="lib/libprocessing_lidar_objects_nodelets">
 
-  <class name="obstacle_detector/ScansMerger" 
-         type="obstacle_detector::ScansMergerNodelet" 
+  <class name="processing_lidar_objects/ScansMerger" 
+         type="processing_lidar_objects::ScansMergerNodelet" 
          base_class_type="nodelet::Nodelet">
     <description>
       Scans Merger Nodelet
     </description>
   </class>
 
-  <class name="obstacle_detector/ObstacleExtractor" 
-         type="obstacle_detector::ObstacleExtractorNodelet" 
+  <class name="processing_lidar_objects/ObstacleExtractor" 
+         type="processing_lidar_objects::ObstacleExtractorNodelet" 
          base_class_type="nodelet::Nodelet">
     <description>
       Obstacle Extractor Nodelet
     </description>
   </class>
 
-  <class name="obstacle_detector/ObstacleTracker" 
-         type="obstacle_detector::ObstacleTrackerNodelet" 
+  <class name="processing_lidar_objects/ObstacleTracker" 
+         type="processing_lidar_objects::ObstacleTrackerNodelet" 
          base_class_type="nodelet::Nodelet">
     <description>
       Obstacle Tracker Nodelet
     </description>
   </class>
 
-  <class name="obstacle_detector/ObstaclePublisher" 
-         type="obstacle_detector::ObstaclePublisherNodelet" 
+  <class name="processing_lidar_objects/ObstaclePublisher" 
+         type="processing_lidar_objects::ObstaclePublisherNodelet" 
          base_class_type="nodelet::Nodelet">
     <description>
       Obstacle Publisher Nodelet

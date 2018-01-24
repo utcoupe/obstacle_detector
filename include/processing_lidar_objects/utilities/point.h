@@ -38,7 +38,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class Point
@@ -87,4 +87,4 @@ public:
   double y;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

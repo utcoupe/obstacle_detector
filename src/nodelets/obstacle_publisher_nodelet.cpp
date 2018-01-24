@@ -36,9 +36,9 @@
 #include <memory>
 #include <nodelet/nodelet.h>
 
-#include "obstacle_detector/obstacle_publisher.h"
+#include "processing_lidar_objects/obstacle_publisher.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class ObstaclePublisherNodelet : public nodelet::Nodelet
@@ -68,7 +68,7 @@ private:
   std::shared_ptr<ObstaclePublisher> obstacle_publisher_;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacle_detector::ObstaclePublisherNodelet, nodelet::Nodelet)
+PLUGINLIB_EXPORT_CLASS(processing_lidar_objects::ObstaclePublisherNodelet, nodelet::Nodelet)

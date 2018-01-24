@@ -1,7 +1,7 @@
-<library path="lib/libobstacle_detector_gui">
+<library path="lib/libprocessing_lidar_objects_gui">
 
   <class name="Scans Merger"
-         type="obstacle_detector::ScansMergerPanel"
+         type="processing_lidar_objects::ScansMergerPanel"
          base_class_type="rviz::Panel">
     <description>
       Scans Merger Panel.
@@ -9,7 +9,7 @@
   </class>
 
   <class name="Obstacle Extractor"
-         type="obstacle_detector::ObstacleExtractorPanel"
+         type="processing_lidar_objects::ObstacleExtractorPanel"
          base_class_type="rviz::Panel">
     <description>
       Obstacle Extractor Panel.
@@ -17,7 +17,7 @@
   </class>
 
   <class name="Obstacle Tracker"
-         type="obstacle_detector::ObstacleTrackerPanel"
+         type="processing_lidar_objects::ObstacleTrackerPanel"
          base_class_type="rviz::Panel">
     <description>
       Obstacle Tracker Panel.
@@ -25,7 +25,7 @@
   </class>
 
   <class name="Obstacle Publisher"
-         type="obstacle_detector::ObstaclePublisherPanel"
+         type="processing_lidar_objects::ObstaclePublisherPanel"
          base_class_type="rviz::Panel">
     <description>
       Obstacle Publisher Panel.
@@ -38,7 +38,7 @@
     <description>
       Obstacles Display
     </description>
-    <message_type>obstacle_detector/Obstacles</message_type>
+    <message_type>processing_lidar_objects/Obstacles</message_type>
   </class>
   
 </library>

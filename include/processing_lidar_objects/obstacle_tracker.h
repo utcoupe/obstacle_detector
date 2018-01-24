@@ -40,12 +40,12 @@
 #include <ros/ros.h>
 #include <armadillo>
 #include <std_srvs/Empty.h>
-#include <obstacle_detector/Obstacles.h>
+#include <processing_lidar_objects/Obstacles.h>
 
-#include "obstacle_detector/utilities/tracked_obstacle.h"
-#include "obstacle_detector/utilities/math_utilities.h"
+#include "processing_lidar_objects/utilities/tracked_obstacle.h"
+#include "processing_lidar_objects/utilities/math_utilities.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class ObstacleTracker {
@@ -56,7 +56,7 @@ public:
 private:
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
   void timerCallback(const ros::TimerEvent&);
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr new_obstacles);
+  void obstaclesCallback(const processing_lidar_objects::Obstacles::ConstPtr new_obstacles);
 
   void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
 
@@ -87,7 +87,7 @@ private:
   ros::Timer timer_;
 
   double radius_margin_;
-  obstacle_detector::Obstacles obstacles_;
+  processing_lidar_objects::Obstacles obstacles_;
 
   std::vector<TrackedObstacle> tracked_obstacles_;
   std::vector<CircleObstacle> untracked_obstacles_;
@@ -109,4 +109,4 @@ private:
   std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

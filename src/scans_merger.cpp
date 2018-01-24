@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/scans_merger.h"
+#include "processing_lidar_objects/scans_merger.h"
 
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 using namespace std;
 
 ScansMerger::ScansMerger(ros::NodeHandle& nh, ros::NodeHandle& nh_local) : nh_(nh), nh_local_(nh_local) {

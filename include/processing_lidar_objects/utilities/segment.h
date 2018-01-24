@@ -37,10 +37,10 @@
 
 #include <vector>
 
-#include "obstacle_detector/utilities/point.h"
-#include "obstacle_detector/utilities/point_set.h"
+#include "processing_lidar_objects/utilities/point.h"
+#include "processing_lidar_objects/utilities/point_set.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class Segment
@@ -118,4 +118,4 @@ public:
   std::vector<PointSet> point_sets;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

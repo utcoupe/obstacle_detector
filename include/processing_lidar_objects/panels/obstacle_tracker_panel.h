@@ -35,24 +35,68 @@
 
 #pragma once
 
-#include <list>
+#include <ros/ros.h>
+#include <rviz/panel.h>
+#include <std_srvs/Empty.h>
 
-#include "obstacle_detector/utilities/point.h"
+#include <QLabel>
+#include <QFrame>
+#include <QCheckBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGridLayout>
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
-typedef std::list<Point>::iterator PointIterator;
-
-class PointSet
+class ObstacleTrackerPanel : public rviz::Panel
 {
+Q_OBJECT
 public:
-  PointSet() : num_points(0), is_visible(false) {}
+  ObstacleTrackerPanel(QWidget* parent = 0);
 
-  PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
-  int num_points;
-  bool is_visible;  // The point set is not occluded by any other point set
+  virtual void load(const rviz::Config& config);
+  virtual void save(rviz::Config config) const;
+
+private Q_SLOTS:
+  void processInputs();
+
+private:
+  void verifyInputs();
+  void setParams();
+  void getParams();
+  void evaluateParams();
+  void notifyParamsUpdate();
+
+private:
+  QCheckBox* activate_checkbox_;
+
+  QLineEdit* tracking_duration_input_;
+  QLineEdit* loop_rate_input_;
+  QLineEdit* min_corr_cost_input_;
+  QLineEdit* std_corr_dev_input_;
+  QLineEdit* process_var_input_;
+  QLineEdit* process_rate_var_input_;
+  QLineEdit* measure_var_input_;
+
+  ros::NodeHandle nh_;
+  ros::NodeHandle nh_local_;
+
+  ros::ServiceClient params_cli_;
+
+  // Parameters
+  bool p_active_;
+
+  double p_tracking_duration_;
+  double p_loop_rate_;
+  double p_min_correspondence_cost_;
+  double p_std_correspondence_dev_;
+  double p_process_variance_;
+  double p_process_rate_variance_;
+  double p_measurement_variance_;
 };
 
-} // namespace obstacle_detector
-
+}

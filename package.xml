@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>obstacle_detector</name>
+  <name>processing_lidar_objects</name>
   <version>1.0.0</version>
   <description>Detect obstacles in form of line segments and circles from 2D laser scans.</description>
   <maintainer email="mateusz.przybyla@put.poznan.pl">Mateusz Przybyla</maintainer>

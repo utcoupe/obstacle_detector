@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/panels/scans_merger_panel.h"
+#include "processing_lidar_objects/panels/scans_merger_panel.h"
 
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 using namespace std;
 
 ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("scans_merger") {
@@ -305,4 +305,4 @@ void ScansMergerPanel::load(const rviz::Config& config) {
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacle_detector::ScansMergerPanel, rviz::Panel)
+PLUGINLIB_EXPORT_CLASS(processing_lidar_objects::ScansMergerPanel, rviz::Panel)

@@ -35,80 +35,35 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <rviz/panel.h>
-#include <std_srvs/Empty.h>
+#include "processing_lidar_objects/utilities/point.h"
+#include "processing_lidar_objects/utilities/segment.h"
 
-#include <QFrame>
-#include <QCheckBox>
-#include <QLineEdit>
-#include <QGroupBox>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QLabel>
-
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
-class ScansMergerPanel : public rviz::Panel
+class Circle
 {
-Q_OBJECT
 public:
-  ScansMergerPanel(QWidget* parent = 0);
+  Circle(const Point& p = Point(), const double r = 0.0) : center(p), radius(r) { }
 
-  virtual void load(const rviz::Config& config);
-  virtual void save(rviz::Config config) const;
+  /*
+   * Create a circle by taking the segment as a base of equilateral
+   * triangle. The circle is circumscribed on this triangle.
+   */
+  Circle(const Segment& s) {
+    radius = 0.5773502 * s.length();  // sqrt(3)/3 * length
+    center = (s.first_point + s.last_point - radius * s.normal()) / 2.0;
+    point_sets = s.point_sets;
+  }
 
-private Q_SLOTS:
-  void processInputs();
+  double distanceTo(const Point& p) { return (p - center).length() - radius; }
 
-private:
-  void verifyInputs();
-  void setParams();
-  void getParams();
-  void evaluateParams();
-  void notifyParamsUpdate();
+  friend std::ostream& operator<<(std::ostream& out, const Circle& c)
+  { out << "C: " << c.center << ", R: " << c.radius; return out; }
 
-private:
-  QCheckBox* activate_checkbox_;
-  QCheckBox* scan_checkbox_;
-  QCheckBox* pcl_checkbox_;
-
-  QLineEdit* n_input_;
-  QLineEdit* r_min_input_;
-  QLineEdit* r_max_input_;
-
-  QLineEdit* x_min_input_;
-  QLineEdit* x_max_input_;
-  QLineEdit* y_min_input_;
-  QLineEdit* y_max_input_;
-
-  QLineEdit* fixed_frame_id_input_;
-  QLineEdit* target_frame_id_input_;
-
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
-
-  ros::ServiceClient params_cli_;
-
-  // Parameters
-  bool p_active_;
-  bool p_publish_scan_;
-  bool p_publish_pcl_;
-
-  int p_ranges_num_;
-
-  double p_min_scanner_range_;
-  double p_max_scanner_range_;
-
-  double p_min_x_range_;
-  double p_max_x_range_;
-  double p_min_y_range_;
-  double p_max_y_range_;
-
-  std::string p_fixed_frame_id_;
-  std::string p_target_frame_id_;
+  Point center;
+  double radius;
+  std::vector<PointSet> point_sets;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

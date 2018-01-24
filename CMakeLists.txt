@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(obstacle_detector)
+project(processing_lidar_objects)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
 

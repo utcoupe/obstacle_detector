@@ -36,9 +36,9 @@
 #include <memory>
 #include <nodelet/nodelet.h>
 
-#include "obstacle_detector/scans_merger.h"
+#include "processing_lidar_objects/scans_merger.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class ScansMergerNodelet : public nodelet::Nodelet
@@ -68,7 +68,7 @@ private:
   std::shared_ptr<ScansMerger> scans_merger_;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacle_detector::ScansMergerNodelet, nodelet::Nodelet)
+PLUGINLIB_EXPORT_CLASS(processing_lidar_objects::ScansMergerNodelet, nodelet::Nodelet)

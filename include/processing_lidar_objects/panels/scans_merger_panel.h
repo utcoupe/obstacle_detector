@@ -35,8 +35,6 @@
 
 #pragma once
 
-#include <algorithm>
-
 #include <ros/ros.h>
 #include <rviz/panel.h>
 #include <std_srvs/Empty.h>
@@ -44,30 +42,26 @@
 #include <QFrame>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
-#include <QListWidget>
-#include <QGroupBox>
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
-class ObstaclePublisherPanel : public rviz::Panel
+class ScansMergerPanel : public rviz::Panel
 {
 Q_OBJECT
 public:
-  ObstaclePublisherPanel(QWidget* parent = 0);
+  ScansMergerPanel(QWidget* parent = 0);
 
   virtual void load(const rviz::Config& config);
   virtual void save(rviz::Config config) const;
 
 private Q_SLOTS:
   void processInputs();
-  void addObstacle();
-  void removeObstacles();
-  void reset();
 
 private:
   void verifyInputs();
@@ -78,48 +72,43 @@ private:
 
 private:
   QCheckBox* activate_checkbox_;
-  QCheckBox* fusion_example_checkbox_;
-  QCheckBox* fission_example_checkbox_;
+  QCheckBox* scan_checkbox_;
+  QCheckBox* pcl_checkbox_;
 
-  QListWidget* obstacles_list_;
-  std::vector<QListWidgetItem*> obstacles_list_items_;
+  QLineEdit* n_input_;
+  QLineEdit* r_min_input_;
+  QLineEdit* r_max_input_;
 
-  QPushButton* add_button_;
-  QPushButton* remove_button_;
-  QPushButton* reset_button_;
+  QLineEdit* x_min_input_;
+  QLineEdit* x_max_input_;
+  QLineEdit* y_min_input_;
+  QLineEdit* y_max_input_;
 
-  QLineEdit* x_input_;
-  QLineEdit* y_input_;
-  QLineEdit* r_input_;
-
-  QLineEdit* vx_input_;
-  QLineEdit* vy_input_;
-
-  QLineEdit* frame_input_;
+  QLineEdit* fixed_frame_id_input_;
+  QLineEdit* target_frame_id_input_;
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::ServiceClient params_cli_;
 
-  double x_, y_, r_, vx_, vy_;
-
   // Parameters
   bool p_active_;
-  bool p_reset_;
-  bool p_fusion_example_;
-  bool p_fission_example_;
+  bool p_publish_scan_;
+  bool p_publish_pcl_;
 
-  double p_loop_rate_;
+  int p_ranges_num_;
 
-  std::vector<double> p_x_vector_;
-  std::vector<double> p_y_vector_;
-  std::vector<double> p_r_vector_;
+  double p_min_scanner_range_;
+  double p_max_scanner_range_;
 
-  std::vector<double> p_vx_vector_;
-  std::vector<double> p_vy_vector_;
+  double p_min_x_range_;
+  double p_max_x_range_;
+  double p_min_y_range_;
+  double p_max_y_range_;
 
-  std::string p_frame_id_;
+  std::string p_fixed_frame_id_;
+  std::string p_target_frame_id_;
 };
 
-}
+} // namespace processing_lidar_objects

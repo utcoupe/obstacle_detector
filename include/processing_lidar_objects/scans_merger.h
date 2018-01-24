@@ -43,7 +43,7 @@
 #include <tf/transform_listener.h>
 #include <laser_geometry/laser_geometry.h>
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class ScansMerger
@@ -100,4 +100,4 @@ private:
   std::string p_target_frame_id_;
 };
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

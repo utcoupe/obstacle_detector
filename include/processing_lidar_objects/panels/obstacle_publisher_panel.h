@@ -35,35 +35,91 @@
 
 #pragma once
 
-#include "obstacle_detector/utilities/point.h"
-#include "obstacle_detector/utilities/segment.h"
+#include <algorithm>
 
-namespace obstacle_detector
+#include <ros/ros.h>
+#include <rviz/panel.h>
+#include <std_srvs/Empty.h>
+
+#include <QFrame>
+#include <QCheckBox>
+#include <QLineEdit>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QListWidget>
+#include <QGroupBox>
+
+namespace processing_lidar_objects
 {
 
-class Circle
+class ObstaclePublisherPanel : public rviz::Panel
 {
+Q_OBJECT
 public:
-  Circle(const Point& p = Point(), const double r = 0.0) : center(p), radius(r) { }
+  ObstaclePublisherPanel(QWidget* parent = 0);
 
-  /*
-   * Create a circle by taking the segment as a base of equilateral
-   * triangle. The circle is circumscribed on this triangle.
-   */
-  Circle(const Segment& s) {
-    radius = 0.5773502 * s.length();  // sqrt(3)/3 * length
-    center = (s.first_point + s.last_point - radius * s.normal()) / 2.0;
-    point_sets = s.point_sets;
-  }
+  virtual void load(const rviz::Config& config);
+  virtual void save(rviz::Config config) const;
 
-  double distanceTo(const Point& p) { return (p - center).length() - radius; }
+private Q_SLOTS:
+  void processInputs();
+  void addObstacle();
+  void removeObstacles();
+  void reset();
 
-  friend std::ostream& operator<<(std::ostream& out, const Circle& c)
-  { out << "C: " << c.center << ", R: " << c.radius; return out; }
+private:
+  void verifyInputs();
+  void setParams();
+  void getParams();
+  void evaluateParams();
+  void notifyParamsUpdate();
 
-  Point center;
-  double radius;
-  std::vector<PointSet> point_sets;
+private:
+  QCheckBox* activate_checkbox_;
+  QCheckBox* fusion_example_checkbox_;
+  QCheckBox* fission_example_checkbox_;
+
+  QListWidget* obstacles_list_;
+  std::vector<QListWidgetItem*> obstacles_list_items_;
+
+  QPushButton* add_button_;
+  QPushButton* remove_button_;
+  QPushButton* reset_button_;
+
+  QLineEdit* x_input_;
+  QLineEdit* y_input_;
+  QLineEdit* r_input_;
+
+  QLineEdit* vx_input_;
+  QLineEdit* vy_input_;
+
+  QLineEdit* frame_input_;
+
+  ros::NodeHandle nh_;
+  ros::NodeHandle nh_local_;
+
+  ros::ServiceClient params_cli_;
+
+  double x_, y_, r_, vx_, vy_;
+
+  // Parameters
+  bool p_active_;
+  bool p_reset_;
+  bool p_fusion_example_;
+  bool p_fission_example_;
+
+  double p_loop_rate_;
+
+  std::vector<double> p_x_vector_;
+  std::vector<double> p_y_vector_;
+  std::vector<double> p_r_vector_;
+
+  std::vector<double> p_vx_vector_;
+  std::vector<double> p_vy_vector_;
+
+  std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+}

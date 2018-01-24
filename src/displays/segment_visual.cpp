@@ -33,7 +33,7 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/displays/segment_visual.h"
+#include "processing_lidar_objects/displays/segment_visual.h"
 
 namespace obstacles_display
 {
@@ -49,7 +49,7 @@ SegmentVisual::~SegmentVisual() {
   scene_manager_->destroySceneNode(frame_node_);
 }
 
-void SegmentVisual::setData(const obstacle_detector::SegmentObstacle& segment) {
+void SegmentVisual::setData(const processing_lidar_objects::SegmentObstacle& segment) {
   Ogre::Vector3 p1(segment.first_point.x, segment.first_point.y, 0.0);
   Ogre::Vector3 p2(segment.last_point.x, segment.last_point.y, 0.0);
   line_->addPoint(p1);

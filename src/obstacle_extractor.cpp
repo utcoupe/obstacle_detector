@@ -33,12 +33,12 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/obstacle_extractor.h"
-#include "obstacle_detector/utilities/figure_fitting.h"
-#include "obstacle_detector/utilities/math_utilities.h"
+#include "processing_lidar_objects/obstacle_extractor.h"
+#include "processing_lidar_objects/utilities/figure_fitting.h"
+#include "processing_lidar_objects/utilities/math_utilities.h"
 
 using namespace std;
-using namespace obstacle_detector;
+using namespace processing_lidar_objects;
 
 ObstacleExtractor::ObstacleExtractor(ros::NodeHandle& nh, ros::NodeHandle& nh_local) : nh_(nh), nh_local_(nh_local) {
   p_active_ = false;
@@ -111,11 +111,11 @@ bool ObstacleExtractor::updateParams(std_srvs::Empty::Request &req, std_srvs::Em
       else if (p_use_pcl_)
         pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleExtractor::pclCallback, this);
 
-      obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("raw_obstacles", 10);
+      obstacles_pub_ = nh_.advertise<processing_lidar_objects::Obstacles>("raw_obstacles", 10);
     }
     else {
       // Send empty message
-      obstacle_detector::ObstaclesPtr obstacles_msg(new obstacle_detector::Obstacles);
+      processing_lidar_objects::ObstaclesPtr obstacles_msg(new processing_lidar_objects::Obstacles);
       obstacles_msg->header.frame_id = p_frame_id_;
       obstacles_msg->header.stamp = ros::Time::now();
       obstacles_pub_.publish(obstacles_msg);
@@ -403,7 +403,7 @@ bool ObstacleExtractor::compareCircles(const Circle& c1, const Circle& c2, Circl
 }
 
 void ObstacleExtractor::publishObstacles() {
-  obstacle_detector::ObstaclesPtr obstacles_msg(new obstacle_detector::Obstacles);
+  processing_lidar_objects::ObstaclesPtr obstacles_msg(new processing_lidar_objects::Obstacles);
   obstacles_msg->header.stamp = stamp_;
 
   if (p_transform_coordinates_) {

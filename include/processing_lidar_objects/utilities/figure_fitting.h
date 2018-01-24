@@ -37,11 +37,11 @@
 
 #include <armadillo>
 
-#include "obstacle_detector/utilities/point.h"
-#include "obstacle_detector/utilities/segment.h"
-#include "obstacle_detector/utilities/circle.h"
+#include "processing_lidar_objects/utilities/point.h"
+#include "processing_lidar_objects/utilities/segment.h"
+#include "processing_lidar_objects/utilities/circle.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 /*
@@ -200,4 +200,4 @@ Circle fitCircle(const std::list<Point>& point_set)
   return Circle(center, radius);
 }
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

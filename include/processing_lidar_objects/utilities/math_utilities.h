@@ -39,9 +39,9 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Point32.h>
 
-#include "obstacle_detector/utilities/point.h"
+#include "processing_lidar_objects/utilities/point.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 inline double signum(double x) { return (x < 0.0) ? -1.0 : 1.0; }
@@ -98,4 +98,4 @@ inline bool checkPointInLimits(const geometry_msgs::Point32& p, double x_min, do
     return true;
 }
 
-} // namespace obstacle_detector
+} // namespace processing_lidar_objects

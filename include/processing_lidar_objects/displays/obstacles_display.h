@@ -36,37 +36,53 @@
 #pragma once
 
 #ifndef Q_MOC_RUN
-#include <obstacle_detector/Obstacles.h>
-
-#include <OGRE/OgreVector3.h>
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 
-#include <rviz/ogre_helpers/line.h>
-#include <rviz/ogre_helpers/billboard_line.h>
+#include <processing_lidar_objects/Obstacles.h>
+#include <tf/transform_listener.h>
+
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/message_filter_display.h>
+#include <rviz/visualization_manager.h>
+#include <rviz/frame_manager.h>
+
+#include "processing_lidar_objects/displays/circle_visual.h"
+#include "processing_lidar_objects/displays/segment_visual.h"
 #endif
 
 namespace obstacles_display
 {
 
-class SegmentVisual
+class ObstaclesDisplay: public rviz::MessageFilterDisplay<processing_lidar_objects::Obstacles>
 {
+Q_OBJECT
 public:
-  SegmentVisual(Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
+  ObstaclesDisplay();
+  virtual ~ObstaclesDisplay();
 
-  virtual ~SegmentVisual();
+protected:
+  virtual void onInitialize();
+  virtual void reset();
 
-  void setData(const obstacle_detector::SegmentObstacle& segment);
-  void setFramePosition(const Ogre::Vector3& position);
-  void setFrameOrientation(const Ogre::Quaternion& orientation);
-  void setColor(float r, float g, float b, float a);
-  void setWidth(float w);
+private Q_SLOTS:
+  void updateCircleColor();
+  void updateSegmentColor();
+  void updateAlpha();
+  void updateThickness();
 
 private:
-  boost::shared_ptr<rviz::BillboardLine> line_;
+  void processMessage(const processing_lidar_objects::Obstacles::ConstPtr& obstacles_msg);
 
-  Ogre::SceneNode* frame_node_;
-  Ogre::SceneManager* scene_manager_;
+  std::vector< boost::shared_ptr<CircleVisual> > circle_visuals_;
+  std::vector< boost::shared_ptr<SegmentVisual> > segment_visuals_;
+
+  rviz::ColorProperty* circle_color_property_;
+  rviz::ColorProperty* margin_color_property_;
+  rviz::ColorProperty* segment_color_property_;
+  rviz::FloatProperty* alpha_property_;
+  rviz::FloatProperty* thickness_property_;
 };
 
 } // end namespace obstacles_display

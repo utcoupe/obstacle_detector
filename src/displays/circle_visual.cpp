@@ -33,7 +33,7 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/displays/circle_visual.h"
+#include "processing_lidar_objects/displays/circle_visual.h"
 
 namespace obstacles_display
 {
@@ -52,7 +52,7 @@ CircleVisual::~CircleVisual() {
   scene_manager_->destroySceneNode(frame_node_2_);
 }
 
-void CircleVisual::setData(const obstacle_detector::CircleObstacle& circle) {
+void CircleVisual::setData(const processing_lidar_objects::CircleObstacle& circle) {
   Ogre::Vector3 pos(circle.center.x, circle.center.y, 0.25);
   obstacle_->setPosition(pos);
 

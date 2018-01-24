@@ -1,6 +1,6 @@
-# The obstacle_detector package 
+# The processing_lidar_objects package 
 
-The `obstacle_detector` package provides utilities to detect and track obstacles from data provided by 2D laser scanners. Detected obstacles come in a form of line segments or circles. The package was designed for a robot equipped with two laser scanners therefore it contains several additional utilities. The working principles of the method are described in an article provided in the `resources` folder.
+The `processing_lidar_objects` package provides utilities to detect and track obstacles from data provided by 2D laser scanners. Detected obstacles come in a form of line segments or circles. The package was designed for a robot equipped with two laser scanners therefore it contains several additional utilities. The working principles of the method are described in an article provided in the `resources` folder.
 
 The package requires [Armadillo C++](http://arma.sourceforge.net) library for compilation and runtime.
 
@@ -126,7 +126,7 @@ The package comes with Rviz panel for this node.
 
 ### 1.3. The obstacle_tracker node
 
-This node tracks and filters the circular obstacles with the use of Kalman filter. It subscribes to messages of custom type `obstacle_detector/Obstacles` from topic `raw_obstacles` and publishes messages of the same type under topic `tracked_obstacles`. The tracking algorithm is applied only to the circular obstacles, hence the segments list in the published message is simply a copy of the original segments. The tracked obstacles are supplemented with additional information on their velocity.
+This node tracks and filters the circular obstacles with the use of Kalman filter. It subscribes to messages of custom type `processing_lidar_objects/Obstacles` from topic `raw_obstacles` and publishes messages of the same type under topic `tracked_obstacles`. The tracking algorithm is applied only to the circular obstacles, hence the segments list in the published message is simply a copy of the original segments. The tracked obstacles are supplemented with additional information on their velocity.
 
 -----------------------
 <p align="center">
@@ -206,12 +206,12 @@ The package provides three custom message types. All of their numerical values a
     - `geometry_msgs/Point last_point` - end point of the segment.
 * `Obstacles`
     - `Header header`
-    - `obstacle_detector/SegmentObstacle[] segments`
-    - `obstacle_detector/CircleObstacle[] circles`
+    - `processing_lidar_objects/SegmentObstacle[] segments`
+    - `processing_lidar_objects/CircleObstacle[] circles`
 
 ## 3. The launch files
 
-Provided launch files are good examples of how to use `obstacle_detector` package. They give a full list of parameters used by each of provided nodes.
+Provided launch files are good examples of how to use `processing_lidar_objects` package. They give a full list of parameters used by each of provided nodes.
 * `demo.launch` - Plays a rosbag with recorded scans and starts all of the nodes with Rviz configured with appropriate panels.
 * `nodes_example.launch` - Runs all of the nodes with their parameters set to default values.
 * `nodelets_example.launch` - Runs all of the nodelets with their parameters set to default values.

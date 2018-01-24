@@ -35,10 +35,10 @@
 
 #pragma once
 
-#include <obstacle_detector/Obstacles.h>
-#include "obstacle_detector/utilities/kalman.h"
+#include <processing_lidar_objects/Obstacles.h>
+#include "processing_lidar_objects/utilities/kalman.h"
 
-namespace obstacle_detector
+namespace processing_lidar_objects
 {
 
 class TrackedObstacle {
