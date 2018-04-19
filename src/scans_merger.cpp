@@ -44,8 +44,8 @@ ScansMerger::ScansMerger(ros::NodeHandle& nh, ros::NodeHandle& nh_local) : nh_(n
   front_scan_received_ = false;
   rear_scan_received_ = false;
 
-  front_scan_error_ = false;
-  rear_scan_error_ = false;
+  front_scan_error_ = true;
+  rear_scan_error_ = true;
 
   params_srv_ = nh_local_.advertiseService("params", &ScansMerger::updateParams, this);
 
