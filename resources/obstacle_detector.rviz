@@ -72,7 +72,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Points
-      Topic: /front_scan
+      Topic: /sensors/front_scan
       Unreliable: true
       Use Fixed Frame: true
       Use rainbow: true
@@ -102,7 +102,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Points
-      Topic: /rear_scan
+      Topic: /sensors/rear_scan
       Unreliable: true
       Use Fixed Frame: true
       Use rainbow: true
@@ -132,7 +132,7 @@ Visualization Manager:
       Size (Pixels): 5
       Size (m): 0.00999999978
       Style: Points
-      Topic: /scan
+      Topic: /sensors/scan
       Unreliable: true
       Use Fixed Frame: true
       Use rainbow: true
@@ -162,7 +162,7 @@ Visualization Manager:
       Size (Pixels): 5
       Size (m): 0.00999999978
       Style: Points
-      Topic: /pcl
+      Topic: /sensors/pcl
       Unreliable: true
       Use Fixed Frame: true
       Use rainbow: true
@@ -175,7 +175,7 @@ Visualization Manager:
       Opacity: 0.75
       Segments color: 170; 170; 0
       Segments thickness: 0.0299999993
-      Topic: /obstacles
+      Topic: /processing/lidar_objects/obstacles
       Unreliable: true
       Value: true
     - Class: rviz/TF
