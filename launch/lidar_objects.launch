@@ -10,7 +10,7 @@
         <param name="use_scan"             value="true"/>
         <param name="use_pcl"              value="false"/>
 
-        <param name="use_split_and_merge"    value="true"/>
+        <param name="use_split_and_merge"    value="false"/>
         <param name="circles_from_visibles"  value="true"/>
         <param name="discard_converted_segments" value="false"/>
         <param name="transform_coordinates"  value="true"/>
