@@ -13,16 +13,16 @@
 
         <param name="ranges_num"        value="1000"/>
 
-        <param name="min_scanner_range" value="0.2"/>
+        <param name="min_scanner_range" value="0.3"/>
         <param name="max_scanner_range" value="10.0"/>
 
-        <param name="min_x_range"       value="-10.0"/>
-        <param name="max_x_range"       value="10.0"/>
-        <param name="min_y_range"       value="-10.0"/>
-        <param name="max_y_range"       value="10.0"/>
+        <param name="min_x_range"       value="-1.0"/>
+        <param name="max_x_range"       value="4.0"/>
+        <param name="min_y_range"       value="-1.0"/>
+        <param name="max_y_range"       value="3.0"/>
 
         <param name="fixed_frame_id"   value="laser"/>
-        <param name="target_frame_id"   value="laser"/>
+        <param name="target_frame_id"   value="map"/>
     </node>
     
     <node name="obstacle_extractor" pkg="nodelet" type="nodelet" args="load processing_lidar_objects/ObstacleExtractor nodelet_manager">
@@ -32,10 +32,10 @@
 
         <param name="use_split_and_merge"    value="false"/>
         <param name="circles_from_visibles"  value="true"/>
-        <param name="discard_converted_segments" value="false"/>
+        <param name="discard_converted_segments" value="true"/>
         <param name="transform_coordinates"  value="true"/>
 
-        <param name="min_group_points"     value="5"/>
+        <param name="min_group_points"     value="10"/>
 
         <param name="max_group_distance"   value="0.05"/>
         <param name="distance_proportion"  value="0.00628"/>
@@ -44,7 +44,7 @@
         <param name="max_merge_spread"     value="0.05"/>
 
         <param name="max_circle_radius"    value="0.4"/>  <!-- Max circles size for recognition -->
-        <param name="radius_enlargement"   value="0.05"/> <!-- Optional margin -->
+        <param name="radius_enlargement"   value="0.00"/> <!-- Optional margin -->
 
         <param name="frame_id"             value="map"/>
     </node>
