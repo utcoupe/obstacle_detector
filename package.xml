@@ -12,6 +12,8 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>tf</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>rviz</depend>
   <depend>roscpp</depend>
   <depend>roslaunch</depend>

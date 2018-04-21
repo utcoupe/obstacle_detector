@@ -37,6 +37,7 @@
 #include "processing_lidar_objects/utilities/figure_fitting.h"
 #include "processing_lidar_objects/utilities/math_utilities.h"
 
+
 using namespace std;
 using namespace processing_lidar_objects;
 
@@ -408,26 +409,42 @@ void ObstacleExtractor::publishObstacles() {
 
   if (p_transform_coordinates_) {
     tf::StampedTransform transform;
+    geometry_msgs::TransformStamped geom_transform;
 
     try {
       tf_listener_.waitForTransform(p_frame_id_, base_frame_id_, stamp_, ros::Duration(0.1));
       tf_listener_.lookupTransform(p_frame_id_, base_frame_id_, stamp_, transform);
+      tf::transformStampedTFToMsg(transform, geom_transform);
     }
     catch (tf::TransformException& ex) {
       ROS_INFO_STREAM(ex.what());
       return;
     }
 
-    tf::Vector3 origin = transform.getOrigin();
-    double theta = tf::getYaw(transform.getRotation());
+    geometry_msgs::PointStamped geom_point;
+    geom_point.header = obstacles_msg->header;
 
     for (Segment& s : segments_) {
-      s.first_point = transformPoint(s.first_point, origin.x(), origin.y(), theta);
-      s.last_point = transformPoint(s.last_point, origin.x(), origin.y(), theta);
+      geom_point.point.x = s.first_point.x;
+      geom_point.point.y = s.first_point.y;
+      tf2::doTransform(geom_point, geom_point, geom_transform);
+      s.first_point.x = geom_point.point.x;
+      s.first_point.y = geom_point.point.y;
+
+      geom_point.point.x = s.last_point.x;
+      geom_point.point.y = s.last_point.y;
+      tf2::doTransform(geom_point, geom_point, geom_transform);
+      s.last_point.x = geom_point.point.x;
+      s.last_point.y = geom_point.point.y;
     }
 
-    for (Circle& c : circles_)
-      c.center = transformPoint(c.center, origin.x(), origin.y(), theta);
+    for (Circle& c : circles_) {
+      geom_point.point.x = c.center.x;
+      geom_point.point.y = c.center.y;
+      tf2::doTransform(geom_point, geom_point, geom_transform);
+      c.center.x = geom_point.point.x;
+      c.center.y = geom_point.point.y;
+    }
 
     obstacles_msg->header.frame_id = p_frame_id_;
   }

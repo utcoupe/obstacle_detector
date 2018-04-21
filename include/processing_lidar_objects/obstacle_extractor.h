@@ -41,6 +41,10 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 #include <processing_lidar_objects/Obstacles.h>
+#include <geometry_msgs/Point.h>
+#include <tf2/convert.h>
+#include <tf/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include "processing_lidar_objects/utilities/point.h"
 #include "processing_lidar_objects/utilities/segment.h"
