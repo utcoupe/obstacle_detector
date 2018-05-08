@@ -67,6 +67,9 @@ ScansMerger::~ScansMerger() {
   nh_local_.deleteParam("min_y_range");
   nh_local_.deleteParam("max_y_range");
 
+  nh_local_.deleteParam("min_angle");
+  nh_local_.deleteParam("max_angle");
+
   nh_local_.deleteParam("fixed_frame_id");
   nh_local_.deleteParam("target_frame_id");
 }
@@ -87,6 +90,9 @@ bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::R
   nh_local_.param<double>("max_x_range", p_max_x_range_,  10.0);
   nh_local_.param<double>("min_y_range", p_min_y_range_, -10.0);
   nh_local_.param<double>("max_y_range", p_max_y_range_,  10.0);
+
+  nh_local_.param<double>("min_angle", p_min_angle_, -180.0);
+  nh_local_.param<double>("max_angle", p_max_angle_,  180.0);
 
   nh_local_.param<string>("fixed_frame_id", p_fixed_frame_id_, "map");
   nh_local_.param<string>("target_frame_id", p_target_frame_id_, "robot");
@@ -155,6 +161,7 @@ void ScansMerger::publishMessages() {
   vector<float> ranges;
   vector<geometry_msgs::Point32> points;
   sensor_msgs::PointCloud new_front_pcl, new_rear_pcl;
+  double point_angle;
 
   ranges.assign(p_ranges_num_, nanf("")); // Assign nan values
 
@@ -168,8 +175,14 @@ void ScansMerger::publishMessages() {
     }
 
     for (auto& point : new_front_pcl.points) {
+      point_angle = atan2(point.y, point.x) * 180.0 / 3.14159265;
+      if(point_angle > 180.0) { // angle between -180 and 180
+        point_angle -= 360.0;
+      }
+
       if (point.x > p_min_x_range_ && point.x < p_max_x_range_ &&
-          point.y > p_min_y_range_ && point.y < p_max_y_range_) {
+          point.y > p_min_y_range_ && point.y < p_max_y_range_ &&
+          point_angle >= p_min_angle_ && point_angle <= p_max_angle_) {
 
         double range = sqrt(pow(point.x, 2.0) + pow(point.y, 2.0));
 

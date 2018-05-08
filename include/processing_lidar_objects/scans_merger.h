@@ -95,6 +95,8 @@ private:
   double p_max_x_range_;
   double p_min_y_range_;
   double p_max_y_range_;
+  double p_min_angle_;
+  double p_max_angle_;
 
   std::string p_fixed_frame_id_;
   std::string p_target_frame_id_;
