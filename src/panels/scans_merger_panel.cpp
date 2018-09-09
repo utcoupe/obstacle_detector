@@ -304,5 +304,5 @@ void ScansMergerPanel::load(const rviz::Config& config) {
   rviz::Panel::load(config);
 }
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(processing_lidar_objects::ScansMergerPanel, rviz::Panel)

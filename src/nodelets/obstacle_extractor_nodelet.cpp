@@ -70,5 +70,5 @@ private:
 
 } // namespace processing_lidar_objects
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(processing_lidar_objects::ObstacleExtractorNodelet, nodelet::Nodelet)
