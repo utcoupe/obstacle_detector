@@ -122,6 +122,12 @@ install(FILES nodelet_plugins.xml rviz_plugins.xml
 #
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+  
+# 
+# Install ressources files
+#
+install (DIRECTORY resources/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/resources)
 
 #
 # Create folders and copy resources
