@@ -12,7 +12,7 @@ generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES scans_merger obstacle_extractor obstacle_tracker obstacle_publisher ${PROJECT_NAME}_nodelets ${PROJECT_NAME}_gui
+  LIBRARIES scans_merger obstacle_extractor obstacle_tracker obstacle_publisher ${PROJECT_NAME}_nodelets
   CATKIN_DEPENDS roscpp nodelet std_msgs std_srvs geometry_msgs sensor_msgs tf tf2 tf2_geometry_msgs laser_geometry message_runtime
 )
 
