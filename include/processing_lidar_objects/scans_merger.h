@@ -35,13 +35,15 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <std_srvs/Empty.h>
-#include <geometry_msgs/Pose2D.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud.h>
-#include <tf/transform_listener.h>
-#include <laser_geometry/laser_geometry.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <geometry_msgs/msg/pose2_d.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <laser_geometry/laser_geometry.hpp>
+
+#include <memory>
 
 namespace processing_lidar_objects
 {
@@ -49,29 +51,34 @@ namespace processing_lidar_objects
 class ScansMerger
 {
 public:
-  ScansMerger(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
+  ScansMerger(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode);
   ~ScansMerger();
 
 private:
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
-  void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr front_scan);
-  void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr rear_scan);
+  void updateParams(const std::shared_ptr<std_srvs::srv::Empty::Request> req, std::shared_ptr<std_srvs::srv::Empty::Response> res);
+  void updateParams();
+  void frontScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr front_scan);
+  void rearScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr rear_scan);
 
-  void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
+  void initialize()
+  {
+    updateParams();
+  }
 
   void publishMessages();
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
+  rclcpp::Node::SharedPtr node_root_;
+  rclcpp::Node::SharedPtr node_local_;
 
-  ros::ServiceServer params_srv_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr params_srv_;
 
-  ros::Subscriber front_scan_sub_;
-  ros::Subscriber rear_scan_sub_;
-  ros::Publisher scan_pub_;
-  ros::Publisher pcl_pub_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr front_scan_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr rear_scan_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pcl_pub_;
 
-  tf::TransformListener tf_ls_;
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_ls_;
   laser_geometry::LaserProjection projector_;
 
   bool front_scan_received_;
@@ -79,8 +86,8 @@ private:
   bool front_scan_error_;
   bool rear_scan_error_;
 
-  sensor_msgs::PointCloud front_pcl_;
-  sensor_msgs::PointCloud rear_pcl_;
+  sensor_msgs::msg::PointCloud::SharedPtr front_pcl_;
+  sensor_msgs::msg::PointCloud::SharedPtr rear_pcl_;
 
   // Parameters
   bool p_active_;

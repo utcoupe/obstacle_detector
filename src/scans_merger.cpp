@@ -38,7 +38,7 @@
 using namespace processing_lidar_objects;
 using namespace std;
 
-ScansMerger::ScansMerger(ros::NodeHandle& nh, ros::NodeHandle& nh_local) : nh_(nh), nh_local_(nh_local) {
+ScansMerger::ScansMerger(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode) : node_root_(rootNode), node_local_(localNode), tf_buffer_(node_root_->get_clock()), tf_ls_(tf_buffer_) {
   p_active_ = false;
 
   front_scan_received_ = false;
@@ -71,7 +71,11 @@ ScansMerger::~ScansMerger() {
   nh_local_.deleteParam("target_frame_id");
 }
 
-bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+void ScansMerger::updateParams(const std::shared_ptr<std_srvs::srv::Empty::Request> req, std::shared_ptr<std_srvs::srv::Empty::Response> res) {
+  updateParams();
+}
+
+void ScansMerger::updateParams() {
   bool prev_active = p_active_;
 
   nh_local_.param<bool>("active", p_active_, true);
@@ -109,7 +113,7 @@ bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::R
   return true;
 }
 
-void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr front_scan) {
+void ScansMerger::frontScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr front_scan) {
   try {
     tf_ls_.waitForTransform(front_scan->header.frame_id, p_fixed_frame_id_,
                             front_scan->header.stamp + ros::Duration().fromSec(front_scan->ranges.size() * front_scan->time_increment), ros::Duration(0.05));
@@ -129,7 +133,7 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr front
     rear_scan_error_ = true;
 }
 
-void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr rear_scan) {
+void ScansMerger::rearScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr rear_scan) {
   try {
     tf_ls_.waitForTransform(rear_scan->header.frame_id, p_fixed_frame_id_,
                                rear_scan->header.stamp + ros::Duration().fromSec(rear_scan->ranges.size() * rear_scan->time_increment), ros::Duration(0.05));
