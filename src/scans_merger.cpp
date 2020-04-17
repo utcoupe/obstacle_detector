@@ -30,15 +30,31 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/scans_merger.h"
 
+#include <sensor_msgs/point_cloud_conversion.hpp>
+#include <tf2/time.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+
+#include <chrono>
+#include <cmath>
+#include <functional>
+
 using namespace processing_lidar_objects;
 using namespace std;
+using namespace std::placeholders;
 
-ScansMerger::ScansMerger(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode) : node_root_(rootNode), node_local_(localNode), tf_buffer_(node_root_->get_clock()), tf_ls_(tf_buffer_) {
+const auto TIMEOUT_TRANSFORM = tf2::durationFromSec(0.05);
+
+ScansMerger::ScansMerger(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode) :
+  node_root_(rootNode),
+  node_local_(localNode),
+  tf_buffer_(node_root_->get_clock()),
+  tf_ls_(tf_buffer_)
+{
   p_active_ = false;
 
   front_scan_received_ = false;
@@ -47,79 +63,113 @@ ScansMerger::ScansMerger(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::Shared
   front_scan_error_ = true;
   rear_scan_error_ = true;
 
-  params_srv_ = nh_local_.advertiseService("params", &ScansMerger::updateParams, this);
+  params_srv_ = node_local_->create_service<std_srvs::srv::Empty>(
+    "params",
+    std::bind(&processing_lidar_objects::ScansMerger::updateParamsCallback, this, _1, _2)
+  );
 
   initialize();
 }
 
 ScansMerger::~ScansMerger() {
-  nh_local_.deleteParam("active");
-  nh_local_.deleteParam("publish_scan");
-  nh_local_.deleteParam("publish_pcl");
+  node_local_->undeclare_parameter("active");
+  node_local_->undeclare_parameter("publish_scan");
+  node_local_->undeclare_parameter("publish_pcl");
 
-  nh_local_.deleteParam("ranges_num");
+  node_local_->undeclare_parameter("ranges_num");
 
-  nh_local_.deleteParam("min_scanner_range");
-  nh_local_.deleteParam("max_scanner_range");
+  node_local_->undeclare_parameter("min_scanner_range");
+  node_local_->undeclare_parameter("max_scanner_range");
 
-  nh_local_.deleteParam("min_x_range");
-  nh_local_.deleteParam("max_x_range");
-  nh_local_.deleteParam("min_y_range");
-  nh_local_.deleteParam("max_y_range");
+  node_local_->undeclare_parameter("min_x_range");
+  node_local_->undeclare_parameter("max_x_range");
+  node_local_->undeclare_parameter("min_y_range");
+  node_local_->undeclare_parameter("max_y_range");
 
-  nh_local_.deleteParam("fixed_frame_id");
-  nh_local_.deleteParam("target_frame_id");
+  node_local_->undeclare_parameter("fixed_frame_id");
+  node_local_->undeclare_parameter("target_frame_id");
 }
 
-void ScansMerger::updateParams(const std::shared_ptr<std_srvs::srv::Empty::Request> req, std::shared_ptr<std_srvs::srv::Empty::Response> res) {
+void ScansMerger::initialize()
+{
+
+  node_local_->declare_parameter("active", true);
+  node_local_->declare_parameter("publish_scan", false);
+  node_local_->declare_parameter("publish_pcl", true);
+
+  node_local_->declare_parameter("ranges_num", 1000);
+
+  node_local_->declare_parameter("min_scanner_range", 0.05);
+  node_local_->declare_parameter("max_scanner_range", 10.0);
+
+  node_local_->declare_parameter("min_x_range", -10.0);
+  node_local_->declare_parameter("max_x_range",  10.0);
+  node_local_->declare_parameter("min_y_range", -10.0);
+  node_local_->declare_parameter("max_y_range",  10.0);
+
+  node_local_->declare_parameter("fixed_frame_id", "map");
+  node_local_->declare_parameter("target_frame_id", "robot");
+
+  updateParams();
+}
+
+void ScansMerger::updateParamsCallback(
+  [[maybe_unused]] const std_srvs::srv::Empty::Request::SharedPtr req,
+  [[maybe_unused]] std::shared_ptr<std_srvs::srv::Empty::Response> res
+) {
   updateParams();
 }
 
 void ScansMerger::updateParams() {
   bool prev_active = p_active_;
 
-  nh_local_.param<bool>("active", p_active_, true);
-  nh_local_.param<bool>("publish_scan", p_publish_scan_, false);
-  nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
+  p_active_ = node_local_->get_parameter("active").get_value<bool>();
+  p_publish_scan_ = node_local_->get_parameter("publish_scan").get_value<bool>();
+  p_publish_pcl_ = node_local_->get_parameter("publish_pcl").get_value<bool>();
 
-  nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
+  p_ranges_num_ = node_local_->get_parameter("ranges_num").get_value<int>();
 
-  nh_local_.param<double>("min_scanner_range", p_min_scanner_range_, 0.05);
-  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 10.0);
+  p_min_scanner_range_ = node_local_->get_parameter("min_scanner_range").get_value<double>();
+  p_max_scanner_range_ = node_local_->get_parameter("max_scanner_range").get_value<double>();
 
-  nh_local_.param<double>("min_x_range", p_min_x_range_, -10.0);
-  nh_local_.param<double>("max_x_range", p_max_x_range_,  10.0);
-  nh_local_.param<double>("min_y_range", p_min_y_range_, -10.0);
-  nh_local_.param<double>("max_y_range", p_max_y_range_,  10.0);
+  p_min_x_range_ = node_local_->get_parameter("min_x_range").get_value<double>();
+  p_max_x_range_ = node_local_->get_parameter("max_x_range").get_value<double>();
+  p_min_y_range_ = node_local_->get_parameter("min_y_range").get_value<double>();
+  p_max_y_range_ = node_local_->get_parameter("max_y_range").get_value<double>();
 
-  nh_local_.param<string>("fixed_frame_id", p_fixed_frame_id_, "map");
-  nh_local_.param<string>("target_frame_id", p_target_frame_id_, "robot");
+  p_fixed_frame_id_ = node_local_->get_parameter("fixed_frame_id").get_value<string>();
+  p_target_frame_id_ = node_local_->get_parameter("target_frame_id").get_value<string>();
 
   if (p_active_ != prev_active) {
     if (p_active_) {
-      front_scan_sub_ = nh_.subscribe("scan", 10, &ScansMerger::frontScanCallback, this);
-      rear_scan_sub_ = nh_.subscribe("rear_scan", 10, &ScansMerger::rearScanCallback, this);
-      scan_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan_transformed", 10);
-      pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
+      front_scan_sub_ = node_root_->create_subscription<sensor_msgs::msg::LaserScan>(
+        "scan",
+        10,
+        std::bind(&ScansMerger::frontScanCallback, this, _1)
+      );
+      rear_scan_sub_ = node_root_->create_subscription<sensor_msgs::msg::LaserScan>(
+        "rear_scan",
+        10,
+        std::bind(&ScansMerger::rearScanCallback, this, _1)
+      );
+      scan_pub_ = node_root_->create_publisher<sensor_msgs::msg::LaserScan>("scan_transformed", 10);
+      pcl_pub_ = node_root_->create_publisher<sensor_msgs::msg::PointCloud>("pcl", 10);
     }
     else {
-      front_scan_sub_.shutdown();
-      rear_scan_sub_.shutdown();
-      scan_pub_.shutdown();
-      pcl_pub_.shutdown();
+      front_scan_sub_ = nullptr;
+      rear_scan_sub_ = nullptr;
+      scan_pub_ = nullptr;
+      pcl_pub_ = nullptr;
     }
   }
-
-  return true;
 }
 
 void ScansMerger::frontScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr front_scan) {
   try {
-    tf_ls_.waitForTransform(front_scan->header.frame_id, p_fixed_frame_id_,
-                            front_scan->header.stamp + ros::Duration().fromSec(front_scan->ranges.size() * front_scan->time_increment), ros::Duration(0.05));
-    projector_.transformLaserScanToPointCloud(p_fixed_frame_id_, *front_scan, front_pcl_, tf_ls_);
+    handleScanUpdate(front_scan, front_pcl_);
   }
-  catch (tf::TransformException& ex) {
+  catch (tf2::LookupException& ex) {
+    // TODO catch tf2::ExtrapolationException ?
     front_scan_error_ = true;
     return;
   }
@@ -135,11 +185,10 @@ void ScansMerger::frontScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr
 
 void ScansMerger::rearScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr rear_scan) {
   try {
-    tf_ls_.waitForTransform(rear_scan->header.frame_id, p_fixed_frame_id_,
-                               rear_scan->header.stamp + ros::Duration().fromSec(rear_scan->ranges.size() * rear_scan->time_increment), ros::Duration(0.05));
-    projector_.transformLaserScanToPointCloud(p_fixed_frame_id_, *rear_scan, rear_pcl_, tf_ls_);
+    handleScanUpdate(rear_scan, rear_pcl_);
   }
-  catch (tf::TransformException& ex) {
+  catch (tf2::LookupException& ex) {
+    // TODO catch tf2::ExtrapolationException ?
     rear_scan_error_ = true;
     return;
   }
@@ -153,76 +202,79 @@ void ScansMerger::rearScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr 
     front_scan_error_ = true;
 }
 
-void ScansMerger::publishMessages() {
-  ros::Time now = ros::Time::now();
+void ScansMerger::handleScanUpdate(const sensor_msgs::msg::LaserScan::SharedPtr& received_scan, sensor_msgs::msg::PointCloud2& relatedPcl) {
+  auto deltaTime = tf2::durationFromSec(static_cast<double>(received_scan->ranges.size()) * static_cast<double>(received_scan->time_increment));
+  auto newTimePoint = tf2::TimePoint(
+    std::chrono::seconds(received_scan->header.stamp.sec)
+    + std::chrono::nanoseconds(received_scan->header.stamp.nanosec)
+    + deltaTime
+  );
+  tf_buffer_.lookupTransform(received_scan->header.frame_id, p_fixed_frame_id_,
+                              newTimePoint, TIMEOUT_TRANSFORM);
+  projector_.transformLaserScanToPointCloud(p_fixed_frame_id_, *received_scan, relatedPcl, tf_buffer_);
+}
 
-  vector<float> ranges;
-  vector<geometry_msgs::Point32> points;
-  sensor_msgs::PointCloud new_front_pcl, new_rear_pcl;
+bool ScansMerger::copyPointsFromPointCloud(
+  std::vector<float>& ranges,
+  std::vector<geometry_msgs::msg::Point32>& points,
+  const sensor_msgs::msg::PointCloud2& pcl_to_copy,
+  const tf2::TimePoint& refTimePoint
+) {
 
-  ranges.assign(p_ranges_num_, nanf("")); // Assign nan values
+  sensor_msgs::msg::PointCloud new_pcl;
+  try {
+    auto transform = tf_buffer_.lookupTransform(p_target_frame_id_, pcl_to_copy.header.frame_id, refTimePoint, TIMEOUT_TRANSFORM);
 
-  if (!front_scan_error_) {
-    try {
-      tf_ls_.waitForTransform(p_target_frame_id_, now, front_pcl_.header.frame_id, front_pcl_.header.stamp, p_fixed_frame_id_, ros::Duration(0.05));
-      tf_ls_.transformPointCloud(p_target_frame_id_, now, front_pcl_, p_fixed_frame_id_, new_front_pcl);
-    }
-    catch (tf::TransformException& ex) {
-      return;
-    }
+    sensor_msgs::msg::PointCloud2 new_pcl2;
+    tf2::doTransform(pcl_to_copy, new_pcl2, transform);
+    sensor_msgs::convertPointCloud2ToPointCloud(new_pcl2, new_pcl);
+  }
+  catch (tf2::LookupException& ex) {
+    // TODO catch tf2::ExtrapolationException ?
+    return false;
+  }
 
-    for (auto& point : new_front_pcl.points) {
-      if (point.x > p_min_x_range_ && point.x < p_max_x_range_ &&
-          point.y > p_min_y_range_ && point.y < p_max_y_range_) {
+  for (auto& point : new_pcl.points) {
+    if (point.x > p_min_x_range_ && point.x < p_max_x_range_ &&
+        point.y > p_min_y_range_ && point.y < p_max_y_range_) {
 
-        double range = sqrt(pow(point.x, 2.0) + pow(point.y, 2.0));
+      double range = hypot(point.x, point.y);
 
-        if (range > p_min_scanner_range_ && range < p_max_scanner_range_) {
-          if (p_publish_pcl_) {
-            points.push_back(point);
-          }
+      if (range > p_min_scanner_range_ && range < p_max_scanner_range_) {
+        if (p_publish_pcl_) {
+          points.push_back(point);
+        }
 
-          if (p_publish_scan_) {
-            double angle = atan2(point.y, point.x);
+        if (p_publish_scan_) {
+          double angle = atan2(point.y, point.x);
 
-            size_t idx = static_cast<int>(p_ranges_num_ * (angle + M_PI) / (2.0 * M_PI));
-            if (isnan(ranges[idx]) || range < ranges[idx])
-              ranges[idx] = range;
-          }
+          size_t idx = static_cast<int>(p_ranges_num_ * (angle + M_PI) / (2.0 * M_PI));
+          if (isnan(ranges[idx]) || range < ranges[idx])
+            ranges[idx] = range;
         }
       }
     }
   }
+  return true;
+}
 
-  if (!rear_scan_error_) {
-    try {
-      tf_ls_.waitForTransform(p_target_frame_id_, now, rear_pcl_.header.frame_id, rear_pcl_.header.stamp, p_fixed_frame_id_, ros::Duration(0.05));
-      tf_ls_.transformPointCloud(p_target_frame_id_, now, rear_pcl_,  p_fixed_frame_id_, new_rear_pcl);
-    }
-    catch (tf::TransformException& ex) {
+void ScansMerger::publishMessages() {
+  auto now = tf2::get_now();
+
+  vector<float> ranges;
+  vector<geometry_msgs::msg::Point32> points;
+
+  ranges.assign(p_ranges_num_, nanf("")); // Assign nan values
+
+  if (!front_scan_error_) {
+    if (!copyPointsFromPointCloud(ranges, points, front_pcl_, now)) {
       return;
     }
+  }
 
-    for (auto& point : new_rear_pcl.points) {
-      if (point.x > p_min_x_range_ && point.x < p_max_x_range_ &&
-          point.y > p_min_y_range_ && point.y < p_max_y_range_) {
-
-        double range = sqrt(pow(point.x, 2.0) + pow(point.y, 2.0));
-
-        if (range > p_min_scanner_range_ && range < p_max_scanner_range_) {
-          if (p_publish_pcl_) {
-            points.push_back(point);
-          }
-
-          if (p_publish_scan_) {
-            double angle = atan2(point.y, point.x);
-
-            size_t idx = static_cast<int>(p_ranges_num_ * (angle + M_PI) / (2.0 * M_PI));
-            if (isnan(ranges[idx]) || range < ranges[idx])
-              ranges[idx] = range;
-          }
-        }
-      }
+  if (!rear_scan_error_) {
+    if (!copyPointsFromPointCloud(ranges, points, rear_pcl_, now)) {
+      return;
     }
   }
 

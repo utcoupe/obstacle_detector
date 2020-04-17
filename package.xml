@@ -13,6 +13,7 @@
   <exec_depend>ros_idl_default_runtime</exec_depend> <!-- replaces message_runtime -->
 
   <depend>tf2</depend>
+  <depend>tf2_msgs</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>rviz2</depend> <!-- replaces rviz-->
   <depend>rclcpp</depend>
@@ -22,6 +23,7 @@
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>laser_geometry</depend>
+  <depend>tf2_sensor_msgs</depend>
 
   <export>
     <!-- <rviz plugin="${prefix}/rviz_plugins.xml"/> -->

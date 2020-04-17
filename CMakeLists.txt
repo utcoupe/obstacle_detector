@@ -30,6 +30,9 @@ find_package(std_srvs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+# find_package(tf2 REQUIRED)
+# find_package(tf2_msgs REQUIRED)
+# find_package(tf2_sensor_msgs REQUIRED)
 
 include_directories(include)
 
@@ -43,4 +46,7 @@ ament_target_dependencies(scan_merger
   laser_geometry
   sensor_msgs
   geometry_msgs
+#  tf2
+#  tf2_msgs
+#  tf2_sensor_msgs
 )

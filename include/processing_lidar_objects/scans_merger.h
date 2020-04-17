@@ -38,6 +38,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
+#include <geometry_msgs/msg/point32.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <sensor_msgs/msg/point_cloud.hpp>
 #include <tf2_ros/transform_listener.h>
@@ -55,15 +56,19 @@ public:
   ~ScansMerger();
 
 private:
-  void updateParams(const std::shared_ptr<std_srvs::srv::Empty::Request> req, std::shared_ptr<std_srvs::srv::Empty::Response> res);
+  void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std::shared_ptr<std_srvs::srv::Empty::Response> res);
   void updateParams();
   void frontScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr front_scan);
   void rearScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr rear_scan);
+  void handleScanUpdate(const sensor_msgs::msg::LaserScan::SharedPtr& received_scan, sensor_msgs::msg::PointCloud2& relatedPcl);
+  bool copyPointsFromPointCloud(
+    std::vector<float>& ranges,
+    std::vector<geometry_msgs::msg::Point32>& points,
+    const sensor_msgs::msg::PointCloud2& pcl_to_copy,
+    const tf2::TimePoint& refTimePoint
+  );
 
-  void initialize()
-  {
-    updateParams();
-  }
+  void initialize();
 
   void publishMessages();
 
@@ -86,8 +91,8 @@ private:
   bool front_scan_error_;
   bool rear_scan_error_;
 
-  sensor_msgs::msg::PointCloud::SharedPtr front_pcl_;
-  sensor_msgs::msg::PointCloud::SharedPtr rear_pcl_;
+  sensor_msgs::msg::PointCloud2 front_pcl_;
+  sensor_msgs::msg::PointCloud2 rear_pcl_;
 
   // Parameters
   bool p_active_;
