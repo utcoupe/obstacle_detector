@@ -57,7 +57,7 @@ public:
   ~ScansMerger();
 
 private:
-  void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std::shared_ptr<std_srvs::srv::Empty::Response> res);
+  void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
   void updateParams();
   void frontScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr front_scan);
   void rearScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr rear_scan);

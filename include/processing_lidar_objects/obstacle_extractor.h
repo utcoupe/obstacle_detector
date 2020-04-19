@@ -35,16 +35,18 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <tf/transform_listener.h>
-#include <std_srvs/Empty.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud.h>
-#include <processing_lidar_objects/Obstacles.h>
-#include <geometry_msgs/Point.h>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <std_srvs/srv/empty.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+#include <geometry_msgs/msg/point.hpp>
 #include <tf2/convert.h>
-#include <tf/transform_datatypes.h>
+// #include <tf/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <processing_lidar_objects/msg/obstacles.hpp>
 
 #include "processing_lidar_objects/utilities/point.h"
 #include "processing_lidar_objects/utilities/segment.h"
@@ -57,15 +59,16 @@ namespace processing_lidar_objects
 class ObstacleExtractor
 {
 public:
-  ObstacleExtractor(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
+  ObstacleExtractor(rclcpp::Node::SharedPtr& node_root, rclcpp::Node::SharedPtr& node_local);
   ~ObstacleExtractor();
 
 private:
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
-  void scanCallback(const sensor_msgs::LaserScan::ConstPtr scan_msg);
-  void pclCallback(const sensor_msgs::PointCloud::ConstPtr pcl_msg);
+  void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
+  void updateParams();
+  void scanCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan_msg);
+  void pclCallback(const sensor_msgs::msg::PointCloud::SharedPtr pcl_msg);
 
-  void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
+  void initialize();
 
   void processPoints();
   void groupPoints();
@@ -81,17 +84,18 @@ private:
   void mergeCircles();
   bool compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle);
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
+  rclcpp::Node::SharedPtr node_root_;
+  rclcpp::Node::SharedPtr node_local_;
 
-  ros::Subscriber scan_sub_;
-  ros::Subscriber pcl_sub_;
-  ros::Publisher obstacles_pub_;
-  ros::ServiceServer params_srv_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud>::SharedPtr pcl_sub_;
+  rclcpp::Publisher<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacles_pub_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr params_srv_;
 
-  ros::Time stamp_;
+  rclcpp::Time stamp_;
   std::string base_frame_id_;
-  tf::TransformListener tf_listener_;
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
 
   std::list<Point> input_points_;
   std::list<Segment> segments_;

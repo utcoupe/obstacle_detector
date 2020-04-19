@@ -116,7 +116,7 @@ void ScansMerger::initialize()
 
 void ScansMerger::updateParamsCallback(
   [[maybe_unused]] const std_srvs::srv::Empty::Request::SharedPtr req,
-  [[maybe_unused]] std::shared_ptr<std_srvs::srv::Empty::Response> res
+  [[maybe_unused]] std_srvs::srv::Empty::Response::SharedPtr res
 ) {
   updateParams();
 }

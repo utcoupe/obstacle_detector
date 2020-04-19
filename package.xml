@@ -11,6 +11,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend> <!-- replaces catkin (only for cpp) -->
   <build_depend>rosidl_default_generators</build_depend> <!-- replaces message_generation -->
   <exec_depend>ros_idl_default_runtime</exec_depend> <!-- replaces message_runtime -->
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <depend>tf2</depend>
   <depend>tf2_msgs</depend>
@@ -25,7 +26,10 @@
   <depend>laser_geometry</depend>
   <depend>tf2_sensor_msgs</depend>
 
+  <test_depend>ament_lint_common</test_depend>
+
   <export>
+    <build_type>ament_cmake</build_type>
     <!-- <rviz plugin="${prefix}/rviz_plugins.xml"/> -->
     <!-- <nodelet plugin="${prefix}/nodelet_plugins.xml" /> -->
   </export>
