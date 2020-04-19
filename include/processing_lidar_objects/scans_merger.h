@@ -39,6 +39,7 @@
 #include <std_srvs/srv/empty.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <geometry_msgs/msg/point32.hpp>
+#include <rclcpp/time.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <sensor_msgs/msg/point_cloud.hpp>
 #include <tf2_ros/transform_listener.h>
@@ -65,7 +66,7 @@ private:
     std::vector<float>& ranges,
     std::vector<geometry_msgs::msg::Point32>& points,
     const sensor_msgs::msg::PointCloud2& pcl_to_copy,
-    const tf2::TimePoint& refTimePoint
+    const rclcpp::Time& refTimePoint
   );
 
   void initialize();

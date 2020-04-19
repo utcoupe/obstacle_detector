@@ -37,6 +37,7 @@
 
 #include <sensor_msgs/point_cloud_conversion.hpp>
 #include <tf2/time.h>
+#include <tf2_ros/buffer_interface.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 
 #include <chrono>
@@ -218,12 +219,12 @@ bool ScansMerger::copyPointsFromPointCloud(
   std::vector<float>& ranges,
   std::vector<geometry_msgs::msg::Point32>& points,
   const sensor_msgs::msg::PointCloud2& pcl_to_copy,
-  const tf2::TimePoint& refTimePoint
+  const rclcpp::Time& refTimePoint
 ) {
 
   sensor_msgs::msg::PointCloud new_pcl;
   try {
-    auto transform = tf_buffer_.lookupTransform(p_target_frame_id_, pcl_to_copy.header.frame_id, refTimePoint, TIMEOUT_TRANSFORM);
+    auto transform = tf_buffer_.lookupTransform(p_target_frame_id_, pcl_to_copy.header.frame_id, tf2_ros::fromRclcpp(refTimePoint), TIMEOUT_TRANSFORM);
 
     sensor_msgs::msg::PointCloud2 new_pcl2;
     tf2::doTransform(pcl_to_copy, new_pcl2, transform);
@@ -248,7 +249,7 @@ bool ScansMerger::copyPointsFromPointCloud(
         if (p_publish_scan_) {
           double angle = atan2(point.y, point.x);
 
-          size_t idx = static_cast<int>(p_ranges_num_ * (angle + M_PI) / (2.0 * M_PI));
+          auto idx = static_cast<size_t>(p_ranges_num_ * (angle + M_PI) / (2.0 * M_PI));
           if (isnan(ranges[idx]) || range < ranges[idx])
             ranges[idx] = range;
         }
@@ -259,7 +260,7 @@ bool ScansMerger::copyPointsFromPointCloud(
 }
 
 void ScansMerger::publishMessages() {
-  auto now = tf2::get_now();
+  auto now = node_root_->now();
 
   vector<float> ranges;
   vector<geometry_msgs::msg::Point32> points;
@@ -278,31 +279,31 @@ void ScansMerger::publishMessages() {
     }
   }
 
-  if (p_publish_scan_) {
-    sensor_msgs::LaserScanPtr scan_msg(new sensor_msgs::LaserScan);
+  if (p_publish_scan_ && scan_pub_) {
+    sensor_msgs::msg::LaserScan scan_msg{};
 
-    scan_msg->header.frame_id = p_target_frame_id_;
-    scan_msg->header.stamp = now;
-    scan_msg->angle_min = -M_PI;
-    scan_msg->angle_max = M_PI;
-    scan_msg->angle_increment = 2.0 * M_PI / (p_ranges_num_ - 1);
-    scan_msg->time_increment = 0.0;
-    scan_msg->scan_time = 0.1;
-    scan_msg->range_min = p_min_scanner_range_;
-    scan_msg->range_max = p_max_scanner_range_;
-    scan_msg->ranges.assign(ranges.begin(), ranges.end());
+    scan_msg.header.frame_id = p_target_frame_id_;
+    scan_msg.header.stamp = now;
+    scan_msg.angle_min = -M_PI;
+    scan_msg.angle_max = M_PI;
+    scan_msg.angle_increment = 2.0 * M_PI / (p_ranges_num_ - 1);
+    scan_msg.time_increment = 0.0;
+    scan_msg.scan_time = 0.1;
+    scan_msg.range_min = p_min_scanner_range_;
+    scan_msg.range_max = p_max_scanner_range_;
+    scan_msg.ranges.assign(ranges.begin(), ranges.end());
 
-    scan_pub_.publish(scan_msg);
+    scan_pub_->publish(scan_msg);
   }
 
-  if (p_publish_pcl_) {
-    sensor_msgs::PointCloudPtr pcl_msg(new sensor_msgs::PointCloud);
+  if (p_publish_pcl_ && pcl_pub_) {
+    sensor_msgs::msg::PointCloud pcl_msg{};
 
-    pcl_msg->header.frame_id = p_target_frame_id_;
-    pcl_msg->header.stamp = now;
-    pcl_msg->points.assign(points.begin(), points.end());
+    pcl_msg.header.frame_id = p_target_frame_id_;
+    pcl_msg.header.stamp = now;
+    pcl_msg.points.assign(points.begin(), points.end());
 
-    pcl_pub_.publish(pcl_msg);
+    pcl_pub_->publish(pcl_msg);
   }
 
   front_scan_received_ = false;
