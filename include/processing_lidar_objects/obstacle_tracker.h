@@ -30,17 +30,19 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #pragma once
 
 #include <list>
 #include <string>
-#include <ros/ros.h>
+
+#include <rclcpp/rclcpp.hpp>
 #include <armadillo>
-#include <std_srvs/Empty.h>
-#include <processing_lidar_objects/Obstacles.h>
+#include <std_srvs/srv/empty.hpp>
+
+#include <processing_lidar_objects/msg/obstacles.hpp>
 
 #include "processing_lidar_objects/utilities/tracked_obstacle.h"
 #include "processing_lidar_objects/utilities/math_utilities.h"
@@ -50,18 +52,19 @@ namespace processing_lidar_objects
 
 class ObstacleTracker {
 public:
-  ObstacleTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
+  ObstacleTracker(rclcpp::Node::SharedPtr& node_root, rclcpp::Node::SharedPtr& node_local);
   ~ObstacleTracker();
 
 private:
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
-  void timerCallback(const ros::TimerEvent&);
-  void obstaclesCallback(const processing_lidar_objects::Obstacles::ConstPtr new_obstacles);
+  void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
+  void timerCallback();
+  void obstaclesCallback(const processing_lidar_objects::msg::Obstacles::SharedPtr new_obstacles);
 
-  void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
+  void initialize();
+  void updateParams();
 
-  double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
-  void calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
+  double obstacleCostFunction(const msg::CircleObstacle& new_obstacle, const msg::CircleObstacle& old_obstacle);
+  void calculateCostMatrix(const std::vector<msg::CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
   void calculateRowMinIndices(const arma::mat& cost_matrix, std::vector<int>& row_min_indices);
   void calculateColMinIndices(const arma::mat& cost_matrix, std::vector<int>& col_min_indices);
 
@@ -71,26 +74,26 @@ private:
   bool fissionObstaclesCorrespond(const int idx, const int jdx, const std::vector<int>& row_min_indices, const std::vector<int>& used_new);
 
   void fuseObstacles(const std::vector<int>& fusion_indices, const std::vector<int>& col_min_indices,
-                     std::vector<TrackedObstacle>& new_tracked, const Obstacles::ConstPtr& new_obstacles);
+                     std::vector<TrackedObstacle>& new_tracked, const msg::Obstacles::SharedPtr& new_obstacles);
   void fissureObstacle(const std::vector<int>& fission_indices, const std::vector<int>& row_min_indices,
-                       std::vector<TrackedObstacle>& new_tracked, const Obstacles::ConstPtr& new_obstacles);
+                       std::vector<TrackedObstacle>& new_tracked, const msg::Obstacles::SharedPtr& new_obstacles);
 
   void updateObstacles();
   void publishObstacles();
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
+  rclcpp::Node::SharedPtr node_root_;
+  rclcpp::Node::SharedPtr node_local_;
 
-  ros::Subscriber obstacles_sub_;
-  ros::Publisher obstacles_pub_;
-  ros::ServiceServer params_srv_;
-  ros::Timer timer_;
+  rclcpp::Subscription<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacles_sub_;
+  rclcpp::Publisher<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacles_pub_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr params_srv_;
+  rclcpp::TimerBase::SharedPtr timer_;
 
   double radius_margin_;
-  processing_lidar_objects::Obstacles obstacles_;
+  processing_lidar_objects::msg::Obstacles obstacles_;
 
   std::vector<TrackedObstacle> tracked_obstacles_;
-  std::vector<CircleObstacle> untracked_obstacles_;
+  std::vector<msg::CircleObstacle> untracked_obstacles_;
 
   // Parameters
   bool p_active_;

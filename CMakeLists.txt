@@ -65,6 +65,17 @@ ament_target_dependencies(scan_merger
 add_library(obstacle_extractor src/obstacle_extractor.cpp)
 ament_target_dependencies(obstacle_extractor
   rclcpp
+  std_srvs
+  sensor_msgs
+  geometry_msgs
+)
+
+add_library(obstacle_tracker src/obstacle_tracker.cpp)
+ament_target_dependencies(obstacle_tracker
+  rclcpp
+  std_srvs
+  sensor_msgs
+  geometry_msgs
 )
 
 # Hacky way to depend on ROS msg/srv from the same package (as of Eloquent)
@@ -73,7 +84,11 @@ find_package("${rmw_implementation}" REQUIRED)
 get_rmw_typesupport(typesupport_impls "${rmw_implementation}" LANGUAGE "cpp")
 
 foreach(typesupport_impl ${typesupport_impls})
-  rosidl_target_interfaces(obstacle_extractor
-    ${PROJECT_NAME} ${typesupport_impl}
-  )
+rosidl_target_interfaces(obstacle_extractor
+  ${PROJECT_NAME} ${typesupport_impl}
+)
+rosidl_target_interfaces(obstacle_tracker
+  ${PROJECT_NAME} ${typesupport_impl}
+)
 endforeach()
+
