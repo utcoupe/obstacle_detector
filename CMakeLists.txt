@@ -7,6 +7,7 @@ if(NOT CMAKE_C_STANDARD)
 endif()
 
 # Default to C++14
+# TODO C++17 ?
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
@@ -78,7 +79,15 @@ ament_target_dependencies(obstacle_tracker
   geometry_msgs
 )
 
-# Hacky way to depend on ROS msg/srv from the same package (as of Eloquent)
+add_library(obstacle_publisher src/obstacle_publisher.cpp)
+ament_target_dependencies(obstacle_publisher
+  rclcpp
+  std_srvs
+  sensor_msgs
+  geometry_msgs
+)
+
+# Hacky way to depend on ROS msg/srv from the same package (as of ROS2 Eloquent)
 get_default_rmw_implementation(rmw_implementation)
 find_package("${rmw_implementation}" REQUIRED)
 get_rmw_typesupport(typesupport_impls "${rmw_implementation}" LANGUAGE "cpp")
@@ -88,6 +97,9 @@ rosidl_target_interfaces(obstacle_extractor
   ${PROJECT_NAME} ${typesupport_impl}
 )
 rosidl_target_interfaces(obstacle_tracker
+  ${PROJECT_NAME} ${typesupport_impl}
+)
+rosidl_target_interfaces(obstacle_publisher
   ${PROJECT_NAME} ${typesupport_impl}
 )
 endforeach()

@@ -30,76 +30,129 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/obstacle_publisher.h"
 
+#include <chrono>
+#include <cmath>
+#include <functional>
+
 using namespace std;
 using namespace processing_lidar_objects;
+using namespace std::placeholders;
+using namespace std::chrono_literals;
 
-ObstaclePublisher::ObstaclePublisher(ros::NodeHandle& nh, ros::NodeHandle& nh_local) : nh_(nh), nh_local_(nh_local) {
+const auto UPDATE_TIMER_DURATION {1s};
+
+ObstaclePublisher::ObstaclePublisher(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode) :
+  node_root_(rootNode),
+  node_local_(localNode)
+{
   p_active_ = false;
   t_ = 0.0;
 
-  timer_ = nh_.createTimer(ros::Duration(1.0), &ObstaclePublisher::timerCallback, this, false, false);
-  params_srv_ = nh_local_.advertiseService("params", &ObstaclePublisher::updateParams, this);
+  params_srv_ = node_local_->create_service<std_srvs::srv::Empty>(
+    "params",
+    std::bind(&ObstaclePublisher::updateParamsCallback, this, _1, _2)
+  );
   initialize();
 }
 
 ObstaclePublisher::~ObstaclePublisher() {
-  nh_local_.deleteParam("active");
-  nh_local_.deleteParam("reset");
+  node_local_->undeclare_parameter("active");
+  node_local_->undeclare_parameter("reset");
 
-  nh_local_.deleteParam("fusion_example");
-  nh_local_.deleteParam("fission_example");
+  node_local_->undeclare_parameter("fusion_example");
+  node_local_->undeclare_parameter("fission_example");
 
-  nh_local_.deleteParam("loop_rate");
-  nh_local_.deleteParam("radius_margin");
+  node_local_->undeclare_parameter("loop_rate");
+  node_local_->undeclare_parameter("radius_margin");
 
-  nh_local_.deleteParam("x_vector");
-  nh_local_.deleteParam("y_vector");
-  nh_local_.deleteParam("r_vector");
+  node_local_->undeclare_parameter("x_vector");
+  node_local_->undeclare_parameter("y_vector");
+  node_local_->undeclare_parameter("r_vector");
 
-  nh_local_.deleteParam("vx_vector");
-  nh_local_.deleteParam("vy_vector");
+  node_local_->undeclare_parameter("vx_vector");
+  node_local_->undeclare_parameter("vy_vector");
 
-  nh_local_.deleteParam("frame_id");
+  node_local_->undeclare_parameter("frame_id");
 }
 
-bool ObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
+void ObstaclePublisher::initialize() {
+  node_local_->declare_parameter("active", true);
+  node_local_->declare_parameter("reset", false);
+
+  node_local_->declare_parameter("fusion_example", false);
+  node_local_->declare_parameter("fission_example", false);
+
+  node_local_->declare_parameter("loop_rate", 10.0); // Hz ?
+  node_local_->declare_parameter("radius_margin", 0.25);
+
+  // Initializes with empty vectors
+  node_local_->declare_parameter("x_vector", p_x_vector_); 
+  node_local_->declare_parameter("y_vector", p_y_vector_);
+  node_local_->declare_parameter("r_vector", p_r_vector_);
+
+  node_local_->declare_parameter("vx_vector", p_vx_vector_);
+  node_local_->declare_parameter("vy_vector", p_vy_vector_);
+
+  node_local_->declare_parameter("frame_id", "map");
+
+  updateParams();
+}
+
+void ObstaclePublisher::updateParamsCallback(
+  [[maybe_unused]] const std_srvs::srv::Empty::Request::SharedPtr req,
+  [[maybe_unused]] std_srvs::srv::Empty::Response::SharedPtr res
+) {
+  updateParams();
+}
+
+void ObstaclePublisher::updateParams() {
   bool prev_active = p_active_;
+  auto prev_sampling_time = p_sampling_time_;
 
-  nh_local_.param<bool>("active", p_active_, true);
-  nh_local_.param<bool>("reset", p_reset_, false);
+  p_active_ = node_local_->get_parameter("active").get_value<bool>();
+  p_reset_ = node_local_->get_parameter("reset").get_value<bool>();
 
-  nh_local_.param<bool>("fusion_example", p_fusion_example_, false);
-  nh_local_.param<bool>("fission_example", p_fission_example_, false);
+  p_fusion_example_ = node_local_->get_parameter("fusion_example").get_value<bool>();
+  p_fission_example_ = node_local_->get_parameter("fission_example").get_value<bool>();
 
-  nh_local_.param<double>("loop_rate", p_loop_rate_, 10.0);
-  nh_local_.param<double>("radius_margin", p_radius_margin_, 0.25);
+  p_loop_rate_ = node_local_->get_parameter("loop_rate").get_value<double>();
+  p_radius_margin_ = node_local_->get_parameter("radius_margin").get_value<double>();
 
-  nh_local_.getParam("x_vector", p_x_vector_);
-  nh_local_.getParam("y_vector", p_y_vector_);
-  nh_local_.getParam("r_vector", p_r_vector_);
+  p_x_vector_ = node_local_->get_parameter("x_vector").get_value<std::vector<double>>();
+  p_y_vector_ = node_local_->get_parameter("y_vector").get_value<std::vector<double>>();
+  p_r_vector_ = node_local_->get_parameter("r_vector").get_value<std::vector<double>>();
 
-  nh_local_.getParam("vx_vector", p_vx_vector_);
-  nh_local_.getParam("vy_vector", p_vy_vector_);
+  p_vx_vector_ = node_local_->get_parameter("vx_vector").get_value<std::vector<double>>();
+  p_vy_vector_ = node_local_->get_parameter("vy_vector").get_value<std::vector<double>>();
 
-  nh_local_.param<string>("frame_id", p_frame_id_, string("map"));
+  p_frame_id_ = node_local_->get_parameter("frame_id").get_value<string>();
 
   p_sampling_time_ = 1.0 / p_loop_rate_;
-  timer_.setPeriod(ros::Duration(p_sampling_time_), false);
 
   if (p_active_ != prev_active) {
     if (p_active_) {
-      obstacle_pub_ = nh_.advertise<processing_lidar_objects::Obstacles>("obstacles", 10);
-      timer_.start();
+      obstacle_pub_ = node_root_->create_publisher<msg::Obstacles>("obstacles", 10);
     }
     else {
-      obstacle_pub_.shutdown();
-      timer_.stop();
+      obstacle_pub_ = nullptr;
     }
+  }
+  
+  if (p_active_ && (p_active_ != prev_active || p_sampling_time_ != prev_sampling_time)) {
+    // FIXME may create undefined behavior (timer destroyed while it could be calling ObstaclePublisher::timerCallback)
+    // use mutex lock ?
+    timer_ = node_root_->create_wall_timer(
+      rclcpp::Duration::from_seconds(p_sampling_time_).to_chrono<std::chrono::nanoseconds>(), // TODO find cleaner way to cast from double
+      std::bind(&ObstaclePublisher::timerCallback, this)
+    );
+  } else if (!p_active_ && timer_) {
+    timer_->cancel(); // Useful ?
+    timer_ = nullptr;
   }
 
   obstacles_.header.frame_id = p_frame_id_;
@@ -107,14 +160,14 @@ bool ObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Em
 
   if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
       p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
-    return false;
+    return;
 
-  for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
-    CircleObstacle circle;
+  for (std::size_t idx = 0; idx < p_x_vector_.size(); ++idx) {
+    msg::CircleObstacle circle;
     circle.center.x = p_x_vector_[idx];
     circle.center.y = p_y_vector_[idx];
     circle.radius = p_r_vector_[idx];
-    circle.true_radius = p_r_vector_[idx] - p_radius_margin_;;
+    circle.true_radius = p_r_vector_[idx] - p_radius_margin_;
 
     circle.velocity.x = p_vx_vector_[idx];
     circle.velocity.y = p_vy_vector_[idx];
@@ -124,11 +177,9 @@ bool ObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Em
 
   if (p_reset_)
     reset();
-
-  return true;
 }
 
-void ObstaclePublisher::timerCallback(const ros::TimerEvent& e) {
+void ObstaclePublisher::timerCallback() {
   t_ += p_sampling_time_;
 
   calculateObstaclesPositions(p_sampling_time_);
@@ -150,7 +201,7 @@ void ObstaclePublisher::calculateObstaclesPositions(double dt) {
 }
 
 void ObstaclePublisher::fusionExample(double t) {
-  CircleObstacle circ1, circ2;
+  msg::CircleObstacle circ1, circ2;
 
   obstacles_.circles.clear();
 
@@ -181,7 +232,7 @@ void ObstaclePublisher::fusionExample(double t) {
 }
 
 void ObstaclePublisher::fissionExample(double t) {
-  CircleObstacle circ1, circ2;
+  msg::CircleObstacle circ1, circ2;
 
   obstacles_.circles.clear();
 
@@ -219,15 +270,14 @@ void ObstaclePublisher::fissionExample(double t) {
 }
 
 void ObstaclePublisher::publishObstacles() {
-  processing_lidar_objects::ObstaclesPtr obstacles_msg(new processing_lidar_objects::Obstacles);
-  *obstacles_msg = obstacles_;
-
-  obstacles_msg->header.stamp = ros::Time::now();
-  obstacle_pub_.publish(obstacles_msg);
+  obstacles_.header.stamp = node_root_->now();
+  if (obstacle_pub_) {
+    obstacle_pub_->publish(obstacles_);
+  }
 }
 
 void ObstaclePublisher::reset() {
   t_ = 0.0;
   p_reset_ = false;
-  nh_local_.setParam("reset", false);
+  node_local_->set_parameter({"reset", false});
 }

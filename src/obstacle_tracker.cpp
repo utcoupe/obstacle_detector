@@ -30,11 +30,12 @@
  */
 
 /*
- * Author: Mateusz Przybyla, Gaëtan Blond
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/obstacle_tracker.h"
 
+#include <chrono>
 #include <functional>
 
 using namespace processing_lidar_objects;
@@ -51,10 +52,6 @@ ObstacleTracker::ObstacleTracker(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node
 {
   p_active_ = false;
 
-  timer_ = node_root_->create_wall_timer(
-    UPDATE_TIMER_DURATION,
-    std::bind(&ObstacleTracker::timerCallback, this)
-  );
   params_srv_ = node_local_->create_service<std_srvs::srv::Empty>(
     "params",
     std::bind(&ObstacleTracker::updateParamsCallback, this, _1, _2)
@@ -106,6 +103,7 @@ void ObstacleTracker::updateParamsCallback(
 
 void ObstacleTracker::updateParams() {
   bool prev_active = p_active_;
+  auto prev_sampling_time = p_sampling_time_;
 
   p_active_ = node_local_->get_parameter("active").get_value<bool>();
   p_copy_segments_ = node_local_->get_parameter("copy_segments").get_value<bool>();
@@ -127,13 +125,6 @@ void ObstacleTracker::updateParams() {
   TrackedObstacle::setSamplingTime(p_sampling_time_);
   TrackedObstacle::setCounterSize(static_cast<int>(p_loop_rate_ * p_tracking_duration_));
   TrackedObstacle::setCovariances(p_process_variance_, p_process_rate_variance_, p_measurement_variance_);
-
-  // FIXME may create undefined behavior (timer destroyed while it could be calling ObstacleTracker::timerCallback)
-  // use mutex lock ?
-  timer_ = node_root_->create_wall_timer(
-    rclcpp::Duration::from_seconds(p_sampling_time_).to_chrono<std::chrono::nanoseconds>(), // TODO find cleaner way to cast from double
-    std::bind(&ObstacleTracker::timerCallback, this)
-  );
 
   if (p_active_ != prev_active) {
     if (p_active_) {
@@ -160,14 +151,22 @@ void ObstacleTracker::updateParams() {
       untracked_obstacles_.clear();
     }
   }
+
+  if (p_active_ && (p_active_ != prev_active || p_sampling_time_ != prev_sampling_time)) {
+    // FIXME may create undefined behavior (timer destroyed while it could be calling ObstacleTracker::timerCallback)
+    // use mutex lock ?
+    timer_ = node_root_->create_wall_timer(
+      rclcpp::Duration::from_seconds(p_sampling_time_).to_chrono<std::chrono::nanoseconds>(), // TODO find cleaner way to cast from double
+      std::bind(&ObstacleTracker::timerCallback, this)
+    );
+  } else if (!p_active_ && timer_) {
+    timer_->cancel(); // Useful ?
+    timer_ = nullptr;
+  }
 }
 
 void ObstacleTracker::timerCallback() {
   // FIXME can lead to data race with updateParams and obstaclesCallback
-  if (!p_active_) {
-    return;
-  }
-
   updateObstacles();
   publishObstacles();
 }
@@ -529,7 +528,9 @@ void ObstacleTracker::publishObstacles() {
   obstacles_msg = obstacles_;
   obstacles_msg.header.stamp = node_root_->now();
 
-  obstacles_pub_->publish(obstacles_msg);
+  if(obstacles_pub_) {
+    obstacles_pub_->publish(obstacles_msg);
+  }
 }
 
 // Ugly initialization of static members of tracked obstacles...

@@ -30,14 +30,14 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #pragma once
 
-#include <ros/ros.h>
-#include <std_srvs/Empty.h>
-#include <processing_lidar_objects/Obstacles.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <processing_lidar_objects/msg/obstacles.hpp>
 
 namespace processing_lidar_objects
 {
@@ -45,14 +45,15 @@ namespace processing_lidar_objects
 class ObstaclePublisher
 {
 public:
-  ObstaclePublisher(ros::NodeHandle &nh, ros::NodeHandle &nh_local);
+  ObstaclePublisher(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode);
   ~ObstaclePublisher();
 
 private:
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
-  void timerCallback(const ros::TimerEvent& e);
+  void updateParams();
+  void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
+  void timerCallback();
 
-  void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
+  void initialize();
 
   void calculateObstaclesPositions(double dt);
   void fusionExample(double t);
@@ -60,14 +61,14 @@ private:
   void publishObstacles();
   void reset();
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
+  rclcpp::Node::SharedPtr node_root_;
+  rclcpp::Node::SharedPtr node_local_;
 
-  ros::Publisher obstacle_pub_;
-  ros::ServiceServer params_srv_;
-  ros::Timer timer_;
+  rclcpp::Publisher<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacle_pub_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr params_srv_;
+  rclcpp::TimerBase::SharedPtr timer_;
 
-  processing_lidar_objects::Obstacles obstacles_;
+  processing_lidar_objects::msg::Obstacles obstacles_;
   double t_;
 
   // Parameters
