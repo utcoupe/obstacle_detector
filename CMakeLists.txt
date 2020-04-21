@@ -33,7 +33,8 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-# find_package(tf2 REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 # find_package(tf2_msgs REQUIRED)
 # find_package(tf2_sensor_msgs REQUIRED)
 
@@ -48,20 +49,30 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 include_directories(include)
 
+# create ament index resource which references the libraries in the binary dir
+set(node_plugins "")
+
 #
 # Build Libs
 #
-add_library(scan_merger src/scans_merger.cpp)
-ament_target_dependencies(scan_merger
+add_library(scans_merger SHARED src/scans_merger.cpp)
+target_compile_definitions(scans_merger
+  PRIVATE "COMPOSITION_BUILDING_DLL"
+)
+ament_target_dependencies(scans_merger
   rclcpp
   std_srvs
   laser_geometry
   sensor_msgs
   geometry_msgs
-#  tf2
+  rclcpp_components
+  tf2
+  tf2_ros
 #  tf2_msgs
 #  tf2_sensor_msgs
 )
+rclcpp_components_register_nodes(scans_merger "${PROJECT_NAME}::ScansMerger")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::ScansMerger;$<TARGET_FILE:scans_merge>\n")
 
 add_library(obstacle_extractor src/obstacle_extractor.cpp)
 ament_target_dependencies(obstacle_extractor
@@ -103,4 +114,13 @@ rosidl_target_interfaces(obstacle_publisher
   ${PROJECT_NAME} ${typesupport_impl}
 )
 endforeach()
+
+#
+# Build nodes
+#
+add_executable(scans_merger_node src/nodes/scans_merger_node.cpp)
+target_link_libraries(scans_merger_node
+  scans_merger
+)
+ament_target_dependencies(scans_merger_node rclcpp)
 

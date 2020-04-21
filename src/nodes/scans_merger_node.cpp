@@ -30,7 +30,7 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/scans_merger.h"
@@ -38,20 +38,17 @@
 using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "scans_merger", ros::init_options::NoRosout);
-  ros::NodeHandle nh("");
-  ros::NodeHandle nh_local("~");
+  rclcpp::init(argc, argv);
 
   try {
-    ROS_INFO("[Scans Merger]: Initializing node");
-    ScansMerger sm(nh, nh_local);
-    ros::spin();
+    rclcpp::spin(std::make_shared<ScansMerger>("scans_merger" /*, ros::init_options::NoRosout */));
+    rclcpp::shutdown();
   }
   catch (const char* s) {
-    ROS_FATAL_STREAM("[Scans Merger]: " << s);
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("rclcpp"), "[Scans Merger]: " << s);
   }
   catch (...) {
-    ROS_FATAL_STREAM("[Scans Merger]: Unexpected error");
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("rclcpp"), "[Scans Merger]: Unexpected error");
   }
 
   return 0;

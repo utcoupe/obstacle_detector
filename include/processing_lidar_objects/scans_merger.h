@@ -35,11 +35,16 @@
 
 #pragma once
 
+// This header wasn't available in ROS2 Eloquent as this time of writing
+#include "rclcpp_components/visibility_control.hpp"
+
+#include <rclcpp/node_options.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
+
 #include <std_srvs/srv/empty.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <geometry_msgs/msg/point32.hpp>
-#include <rclcpp/time.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <sensor_msgs/msg/point_cloud.hpp>
 #include <tf2_ros/transform_listener.h>
@@ -50,11 +55,17 @@
 namespace processing_lidar_objects
 {
 
-class ScansMerger
+class ScansMerger : public rclcpp::Node
 {
 public:
-  ScansMerger(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode);
-  ~ScansMerger();
+  RCLCPP_COMPONENTS_PUBLIC
+  ScansMerger(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
+  RCLCPP_COMPONENTS_PUBLIC
+  virtual ~ScansMerger();
 
 private:
   void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
@@ -72,9 +83,6 @@ private:
   void initialize();
 
   void publishMessages();
-
-  rclcpp::Node::SharedPtr node_root_;
-  rclcpp::Node::SharedPtr node_local_;
 
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr params_srv_;
 
