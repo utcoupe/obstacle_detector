@@ -115,6 +115,14 @@ rosidl_target_interfaces(obstacle_publisher
 )
 endforeach()
 
+
+# since the package installs libraries without exporting them
+# it needs to make sure that the library path is being exported
+if(NOT WIN32)
+  ament_environment_hooks(
+    "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}")
+endif()
+
 #
 # Build nodes
 #
@@ -123,4 +131,32 @@ target_link_libraries(scans_merger_node
   scans_merger
 )
 ament_target_dependencies(scans_merger_node rclcpp)
+
+#
+# Install libraries
+#
+
+install(
+  TARGETS
+    scans_merger
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+#
+# Install executables
+#
+
+install(
+  TARGETS
+    scans_merger_node
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+#
+# Extra install instructions
+#
+
+ament_package()
 
