@@ -45,6 +45,13 @@ using namespace std::placeholders;
 using namespace std::chrono_literals;
 
 const auto UPDATE_TIMER_DURATION {1s};
+const auto DEFAULT_NODE_NAME = "obstacle_publisher";
+
+ObstaclePublisher::ObstaclePublisher(
+    const rclcpp::NodeOptions & node_options
+):
+  ObstaclePublisher(DEFAULT_NODE_NAME, node_options)
+{}
 
 ObstaclePublisher::ObstaclePublisher(
     std::string node_name,
@@ -283,3 +290,11 @@ void ObstaclePublisher::reset() {
   p_reset_ = false;
   this->set_parameter({"~/reset", false});
 }
+
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+// Register the component with class_loader.
+// This acts as a sort of entry point, allowing the component to be discoverable when its library
+// is being loaded into a running process.
+RCLCPP_COMPONENTS_REGISTER_NODE(processing_lidar_objects::ObstaclePublisher)

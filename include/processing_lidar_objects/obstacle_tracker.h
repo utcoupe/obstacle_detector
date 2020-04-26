@@ -35,6 +35,9 @@
 
 #pragma once
 
+// This header wasn't available in ROS2 Eloquent as this time of writing
+#include "rclcpp_components/visibility_control.hpp"
+
 #include <list>
 #include <string>
 
@@ -52,11 +55,18 @@ namespace processing_lidar_objects
 
 class ObstacleTracker : public rclcpp::Node {
 public:
+  RCLCPP_COMPONENTS_PUBLIC
+  ObstacleTracker(
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
   ObstacleTracker(
     std::string node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
   );
-  ~ObstacleTracker();
+
+  RCLCPP_COMPONENTS_PUBLIC
+  virtual ~ObstacleTracker();
 
 private:
   void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);

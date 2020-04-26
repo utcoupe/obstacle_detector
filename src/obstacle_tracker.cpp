@@ -46,6 +46,13 @@ using namespace std::chrono_literals;
 
 const auto UPDATE_TIMER_DURATION {1s};
 const auto HOKUYO_SENSOR_RATE_HZ {10.0};
+const auto DEFAULT_NODE_NAME = "obstacle_tracker";
+
+ObstacleTracker::ObstacleTracker(
+    const rclcpp::NodeOptions & node_options
+):
+  ObstacleTracker(DEFAULT_NODE_NAME, node_options)
+{}
 
 ObstacleTracker::ObstacleTracker(
     std::string node_name,
@@ -542,3 +549,11 @@ double TrackedObstacle::s_sampling_time_         = 100.0;
 double TrackedObstacle::s_process_variance_      = 0.0;
 double TrackedObstacle::s_process_rate_variance_ = 0.0;
 double TrackedObstacle::s_measurement_variance_  = 0.0;
+
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+// Register the component with class_loader.
+// This acts as a sort of entry point, allowing the component to be discoverable when its library
+// is being loaded into a running process.
+RCLCPP_COMPONENTS_REGISTER_NODE(processing_lidar_objects::ObstacleTracker)

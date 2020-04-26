@@ -60,6 +60,10 @@ class ScansMerger : public rclcpp::Node
 public:
   RCLCPP_COMPONENTS_PUBLIC
   ScansMerger(
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
+  ScansMerger(
     std::string node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
   );

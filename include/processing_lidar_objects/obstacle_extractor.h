@@ -63,6 +63,10 @@ class ObstacleExtractor : public rclcpp::Node
 public:
   RCLCPP_COMPONENTS_PUBLIC
   ObstacleExtractor(
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
+  ObstacleExtractor(
     std::string node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
   );

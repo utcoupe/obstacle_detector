@@ -49,6 +49,10 @@ class ObstaclePublisher : public rclcpp::Node
 public:
   RCLCPP_COMPONENTS_PUBLIC
   ObstaclePublisher(
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
+  ObstaclePublisher(
     std::string node_name,
     const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
   );

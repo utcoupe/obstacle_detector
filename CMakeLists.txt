@@ -83,9 +83,12 @@ ament_target_dependencies(scans_merger
 #  tf2_sensor_msgs
 )
 rclcpp_components_register_nodes(scans_merger "${PROJECT_NAME}::ScansMerger")
-set(node_plugins "${node_plugins}${PROJECT_NAME}::ScansMerger;$<TARGET_FILE:scans_merge>\n")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::ScansMerger;$<TARGET_FILE:scans_merger>\n")
 
-add_library(obstacle_extractor src/obstacle_extractor.cpp)
+add_library(obstacle_extractor SHARED src/obstacle_extractor.cpp)
+target_compile_definitions(obstacle_extractor
+  PRIVATE "COMPOSITION_BUILDING_DLL"
+)
 target_link_libraries(obstacle_extractor
   ${ARMADILLO_LIBRARIES}
 )
@@ -99,8 +102,13 @@ ament_target_dependencies(obstacle_extractor
   tf2_ros
   tf2_kdl
 )
+rclcpp_components_register_nodes(obstacle_extractor "${PROJECT_NAME}::ObstacleExtractor")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::ObstacleExtractor;$<TARGET_FILE:obstacle_extractor>\n")
 
-add_library(obstacle_tracker src/obstacle_tracker.cpp)
+add_library(obstacle_tracker SHARED src/obstacle_tracker.cpp)
+target_compile_definitions(obstacle_tracker
+  PRIVATE "COMPOSITION_BUILDING_DLL"
+)
 target_link_libraries(obstacle_tracker
   ${ARMADILLO_LIBRARIES}
 )
@@ -109,15 +117,24 @@ ament_target_dependencies(obstacle_tracker
   std_srvs
   sensor_msgs
   geometry_msgs
+  rclcpp_components
 )
+rclcpp_components_register_nodes(obstacle_tracker "${PROJECT_NAME}::ObstacleTracker")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::ObstacleTracker;$<TARGET_FILE:obstacle_tracker>\n")
 
-add_library(obstacle_publisher src/obstacle_publisher.cpp)
+add_library(obstacle_publisher SHARED src/obstacle_publisher.cpp)
+target_compile_definitions(obstacle_publisher
+  PRIVATE "COMPOSITION_BUILDING_DLL"
+)
 ament_target_dependencies(obstacle_publisher
   rclcpp
   std_srvs
   sensor_msgs
   geometry_msgs
+  rclcpp_components
 )
+rclcpp_components_register_nodes(obstacle_publisher "${PROJECT_NAME}::ObstaclePublisher")
+set(node_plugins "${node_plugins}${PROJECT_NAME}::ObstaclePublisher;$<TARGET_FILE:obstacle_publisher>\n")
 
 # Hacky way to depend on ROS msg/srv from the same package (as of ROS2 Eloquent)
 get_default_rmw_implementation(rmw_implementation)
@@ -207,4 +224,3 @@ install(
 #
 
 ament_package()
-

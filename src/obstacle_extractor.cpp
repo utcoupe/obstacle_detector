@@ -46,6 +46,13 @@ using namespace std::placeholders;
 using namespace processing_lidar_objects;
 
 const auto TRANSFORM_TIMEOUT = tf2::durationFromSec(0.1);
+const auto DEFAULT_NODE_NAME = "obstacle_extractor";
+
+ObstacleExtractor::ObstacleExtractor(
+    const rclcpp::NodeOptions & node_options
+):
+  ObstacleExtractor(DEFAULT_NODE_NAME, node_options)
+{}
 
 ObstacleExtractor::ObstacleExtractor(
     std::string node_name,
@@ -540,3 +547,11 @@ void ObstacleExtractor::publishObstacles() {
 
   obstacles_pub_->publish(obstacles_msg);
 }
+
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+// Register the component with class_loader.
+// This acts as a sort of entry point, allowing the component to be discoverable when its library
+// is being loaded into a running process.
+RCLCPP_COMPONENTS_REGISTER_NODE(processing_lidar_objects::ObstacleExtractor)

@@ -49,6 +49,11 @@ using namespace std;
 using namespace std::placeholders;
 
 const auto TIMEOUT_TRANSFORM = tf2::durationFromSec(0.05);
+const auto DEFAULT_NODE_NAME = "scans_merger";
+
+ScansMerger::ScansMerger(const rclcpp::NodeOptions & node_options):
+  ScansMerger(DEFAULT_NODE_NAME, node_options)
+{}
 
 ScansMerger::ScansMerger(
     std::string node_name,
@@ -311,3 +316,10 @@ void ScansMerger::publishMessages() {
   front_scan_received_ = false;
   rear_scan_received_ = false;
 }
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+// Register the component with class_loader.
+// This acts as a sort of entry point, allowing the component to be discoverable when its library
+// is being loaded into a running process.
+RCLCPP_COMPONENTS_REGISTER_NODE(processing_lidar_objects::ScansMerger)
