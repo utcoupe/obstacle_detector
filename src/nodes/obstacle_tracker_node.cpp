@@ -30,28 +30,27 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/obstacle_tracker.h"
 
+#include <rclcpp/rclcpp.hpp>
+
 using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "obstacle_tracker", ros::init_options::NoRosout);
-  ros::NodeHandle nh("");
-  ros::NodeHandle nh_local("~");
+  rclcpp::init(argc, argv);
 
   try {
-    ROS_INFO("[Obstacle Tracker]: Initializing node");
-    ObstacleTracker ot(nh, nh_local);
-    ros::spin();
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[Obstacle Tracker]: Initializing node");
+    rclcpp::spin(std::make_shared<ObstacleTracker>("obstacle_tracker"));
   }
   catch (const char* s) {
-    ROS_FATAL_STREAM("[Obstacle Tracker]: " << s);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "[Obstacle Tracker]: " << s);
   }
   catch (...) {
-    ROS_FATAL_STREAM("[Obstacle Tracker]: Unexpected error");
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "[Obstacle Tracker]: Unexpected error");
   }
 
   return 0;

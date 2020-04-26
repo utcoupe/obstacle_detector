@@ -50,9 +50,12 @@
 namespace processing_lidar_objects
 {
 
-class ObstacleTracker {
+class ObstacleTracker : public rclcpp::Node {
 public:
-  ObstacleTracker(rclcpp::Node::SharedPtr& node_root, rclcpp::Node::SharedPtr& node_local);
+  ObstacleTracker(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
   ~ObstacleTracker();
 
 private:
@@ -80,9 +83,6 @@ private:
 
   void updateObstacles();
   void publishObstacles();
-
-  rclcpp::Node::SharedPtr node_root_;
-  rclcpp::Node::SharedPtr node_local_;
 
   rclcpp::Subscription<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacles_sub_;
   rclcpp::Publisher<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacles_pub_;

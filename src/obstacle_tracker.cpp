@@ -47,13 +47,16 @@ using namespace std::chrono_literals;
 const auto UPDATE_TIMER_DURATION {1s};
 const auto HOKUYO_SENSOR_RATE_HZ {10.0};
 
-ObstacleTracker::ObstacleTracker(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode) :
-  node_root_(rootNode), node_local_(localNode)
+ObstacleTracker::ObstacleTracker(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options
+):
+  Node(node_name, node_options)
 {
   p_active_ = false;
 
-  params_srv_ = node_local_->create_service<std_srvs::srv::Empty>(
-    "params",
+  params_srv_ = this->create_service<std_srvs::srv::Empty>(
+    "~/params",
     std::bind(&ObstacleTracker::updateParamsCallback, this, _1, _2)
   );
 
@@ -61,35 +64,35 @@ ObstacleTracker::ObstacleTracker(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node
 }
 
 ObstacleTracker::~ObstacleTracker() {
-  node_local_->undeclare_parameter("active");
-  node_local_->undeclare_parameter("copy_segments");
+  this->undeclare_parameter("~/active");
+  this->undeclare_parameter("~/copy_segments");
 
-  node_local_->undeclare_parameter("loop_rate");
+  this->undeclare_parameter("~/loop_rate");
 
-  node_local_->undeclare_parameter("tracking_duration");
-  node_local_->undeclare_parameter("min_correspondence_cost");
-  node_local_->undeclare_parameter("std_correspondence_dev");
-  node_local_->undeclare_parameter("process_variance");
-  node_local_->undeclare_parameter("process_rate_variance");
-  node_local_->undeclare_parameter("measurement_variance");
+  this->undeclare_parameter("~/tracking_duration");
+  this->undeclare_parameter("~/min_correspondence_cost");
+  this->undeclare_parameter("~/std_correspondence_dev");
+  this->undeclare_parameter("~/process_variance");
+  this->undeclare_parameter("~/process_rate_variance");
+  this->undeclare_parameter("~/measurement_variance");
 
-  node_local_->undeclare_parameter("frame_id");
+  this->undeclare_parameter("~/frame_id");
 }
 
 void ObstacleTracker::initialize() {
-  node_local_->declare_parameter("active", true);
-  node_local_->declare_parameter("copy_segments", true);
+  this->declare_parameter("~/active", true);
+  this->declare_parameter("~/copy_segments", true);
 
-  node_local_->declare_parameter("loop_rate", 100.0);
+  this->declare_parameter("~/loop_rate", 100.0);
 
-  node_local_->declare_parameter("tracking_duration", 2.0);
-  node_local_->declare_parameter("min_correspondence_cost", 0.3);
-  node_local_->declare_parameter("std_correspondence_dev", 0.15);
-  node_local_->declare_parameter("process_variance", 0.01);
-  node_local_->declare_parameter("process_rate_variance", 0.1);
-  node_local_->declare_parameter("measurement_variance", 1.0);
+  this->declare_parameter("~/tracking_duration", 2.0);
+  this->declare_parameter("~/min_correspondence_cost", 0.3);
+  this->declare_parameter("~/std_correspondence_dev", 0.15);
+  this->declare_parameter("~/process_variance", 0.01);
+  this->declare_parameter("~/process_rate_variance", 0.1);
+  this->declare_parameter("~/measurement_variance", 1.0);
 
-  node_local_->declare_parameter("frame_id", "map");
+  this->declare_parameter("~/frame_id", "map");
 
   updateParams();
 }
@@ -105,21 +108,21 @@ void ObstacleTracker::updateParams() {
   bool prev_active = p_active_;
   auto prev_sampling_time = p_sampling_time_;
 
-  p_active_ = node_local_->get_parameter("active").get_value<bool>();
-  p_copy_segments_ = node_local_->get_parameter("copy_segments").get_value<bool>();
+  p_active_ = this->get_parameter("~/active").get_value<bool>();
+  p_copy_segments_ = this->get_parameter("~/copy_segments").get_value<bool>();
 
-  p_loop_rate_ = node_local_->get_parameter("loop_rate").get_value<double>();
+  p_loop_rate_ = this->get_parameter("~/loop_rate").get_value<double>();
   p_sampling_time_ = 1.0 / p_loop_rate_;
   p_sensor_rate_ = HOKUYO_SENSOR_RATE_HZ;
 
-  p_tracking_duration_ = node_local_->get_parameter("tracking_duration").get_value<double>();
-  p_min_correspondence_cost_ = node_local_->get_parameter("min_correspondence_cost").get_value<double>();
-  p_std_correspondence_dev_ = node_local_->get_parameter("std_correspondence_dev").get_value<double>();
-  p_process_variance_ = node_local_->get_parameter("process_variance").get_value<double>();
-  p_process_rate_variance_ = node_local_->get_parameter("process_rate_variance").get_value<double>();
-  p_measurement_variance_ = node_local_->get_parameter("measurement_variance").get_value<double>();
+  p_tracking_duration_ = this->get_parameter("~/tracking_duration").get_value<double>();
+  p_min_correspondence_cost_ = this->get_parameter("~/min_correspondence_cost").get_value<double>();
+  p_std_correspondence_dev_ = this->get_parameter("~/std_correspondence_dev").get_value<double>();
+  p_process_variance_ = this->get_parameter("~/process_variance").get_value<double>();
+  p_process_rate_variance_ = this->get_parameter("~/process_rate_variance").get_value<double>();
+  p_measurement_variance_ = this->get_parameter("~/measurement_variance").get_value<double>();
 
-  p_frame_id_ = node_local_->get_parameter("frame_id").get_value<string>();
+  p_frame_id_ = this->get_parameter("~/frame_id").get_value<string>();
   obstacles_.header.frame_id = p_frame_id_;
 
   TrackedObstacle::setSamplingTime(p_sampling_time_);
@@ -128,12 +131,12 @@ void ObstacleTracker::updateParams() {
 
   if (p_active_ != prev_active) {
     if (p_active_) {
-      obstacles_sub_ = node_root_->create_subscription<msg::Obstacles>(
+      obstacles_sub_ = this->create_subscription<msg::Obstacles>(
         "raw_obstacles",
         10,
         std::bind(&ObstacleTracker::obstaclesCallback, this, _1)
       );
-      obstacles_pub_ = node_root_->create_publisher<msg::Obstacles>("tracked_obstacles", 10);
+      obstacles_pub_ = this->create_publisher<msg::Obstacles>("tracked_obstacles", 10);
     }
     else {
       // FIXME can lead to data race with timerCallback and obstaclesCallback
@@ -141,7 +144,7 @@ void ObstacleTracker::updateParams() {
       // Send empty message
       msg::Obstacles obstacles_msg {};
       obstacles_msg.header.frame_id = obstacles_.header.frame_id;
-      obstacles_msg.header.stamp = node_root_->now();
+      obstacles_msg.header.stamp = this->now();
       obstacles_pub_->publish(obstacles_msg);
 
       obstacles_sub_ = nullptr;
@@ -155,7 +158,7 @@ void ObstacleTracker::updateParams() {
   if (p_active_ && (p_active_ != prev_active || p_sampling_time_ != prev_sampling_time)) {
     // FIXME may create undefined behavior (timer destroyed while it could be calling ObstacleTracker::timerCallback)
     // use mutex lock ?
-    timer_ = node_root_->create_wall_timer(
+    timer_ = this->create_wall_timer(
       rclcpp::Duration::from_seconds(p_sampling_time_).to_chrono<std::chrono::nanoseconds>(), // TODO find cleaner way to cast from double
       std::bind(&ObstacleTracker::timerCallback, this)
     );
@@ -526,7 +529,7 @@ void ObstacleTracker::publishObstacles() {
   }
 
   obstacles_msg = obstacles_;
-  obstacles_msg.header.stamp = node_root_->now();
+  obstacles_msg.header.stamp = this->now();
 
   if(obstacles_pub_) {
     obstacles_pub_->publish(obstacles_msg);

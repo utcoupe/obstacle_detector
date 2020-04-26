@@ -101,6 +101,9 @@ ament_target_dependencies(obstacle_extractor
 )
 
 add_library(obstacle_tracker src/obstacle_tracker.cpp)
+target_link_libraries(obstacle_tracker
+  ${ARMADILLO_LIBRARIES}
+)
 ament_target_dependencies(obstacle_tracker
   rclcpp
   std_srvs
@@ -157,6 +160,13 @@ target_link_libraries(obstacle_extractor_node
 )
 ament_target_dependencies(obstacle_extractor_node rclcpp)
 
+
+add_executable(obstacle_tracker_node src/nodes/obstacle_tracker_node.cpp)
+target_link_libraries(obstacle_tracker_node
+  obstacle_tracker
+)
+ament_target_dependencies(obstacle_tracker_node rclcpp)
+
 #
 # Install libraries
 #
@@ -165,6 +175,7 @@ install(
   TARGETS
     scans_merger
     obstacle_extractor
+    obstacle_tracker
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -178,6 +189,7 @@ install(
   TARGETS
     scans_merger_node
     obstacle_extractor_node
+    obstacle_tracker_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
