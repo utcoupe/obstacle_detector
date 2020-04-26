@@ -35,6 +35,8 @@
 
 #pragma once
 
+#include "rclcpp_components/visibility_control.hpp"
+
 #include <rclcpp/rclcpp.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <processing_lidar_objects/msg/obstacles.hpp>
@@ -42,11 +44,17 @@
 namespace processing_lidar_objects
 {
 
-class ObstaclePublisher
+class ObstaclePublisher : public rclcpp::Node
 {
 public:
-  ObstaclePublisher(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode);
-  ~ObstaclePublisher();
+  RCLCPP_COMPONENTS_PUBLIC
+  ObstaclePublisher(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
+  RCLCPP_COMPONENTS_PUBLIC
+  virtual ~ObstaclePublisher();
 
 private:
   void updateParams();
@@ -60,9 +68,6 @@ private:
   void fissionExample(double t);
   void publishObstacles();
   void reset();
-
-  rclcpp::Node::SharedPtr node_root_;
-  rclcpp::Node::SharedPtr node_local_;
 
   rclcpp::Publisher<processing_lidar_objects::msg::Obstacles>::SharedPtr obstacle_pub_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr params_srv_;

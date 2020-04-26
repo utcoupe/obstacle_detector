@@ -46,59 +46,61 @@ using namespace std::chrono_literals;
 
 const auto UPDATE_TIMER_DURATION {1s};
 
-ObstaclePublisher::ObstaclePublisher(rclcpp::Node::SharedPtr& rootNode, rclcpp::Node::SharedPtr& localNode) :
-  node_root_(rootNode),
-  node_local_(localNode)
+ObstaclePublisher::ObstaclePublisher(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options
+):
+  Node(node_name, node_options)
 {
   p_active_ = false;
   t_ = 0.0;
 
-  params_srv_ = node_local_->create_service<std_srvs::srv::Empty>(
-    "params",
+  params_srv_ = this->create_service<std_srvs::srv::Empty>(
+    "~/params",
     std::bind(&ObstaclePublisher::updateParamsCallback, this, _1, _2)
   );
   initialize();
 }
 
 ObstaclePublisher::~ObstaclePublisher() {
-  node_local_->undeclare_parameter("active");
-  node_local_->undeclare_parameter("reset");
+  this->undeclare_parameter("~/active");
+  this->undeclare_parameter("~/reset");
 
-  node_local_->undeclare_parameter("fusion_example");
-  node_local_->undeclare_parameter("fission_example");
+  this->undeclare_parameter("~/fusion_example");
+  this->undeclare_parameter("~/fission_example");
 
-  node_local_->undeclare_parameter("loop_rate");
-  node_local_->undeclare_parameter("radius_margin");
+  this->undeclare_parameter("~/loop_rate");
+  this->undeclare_parameter("~/radius_margin");
 
-  node_local_->undeclare_parameter("x_vector");
-  node_local_->undeclare_parameter("y_vector");
-  node_local_->undeclare_parameter("r_vector");
+  this->undeclare_parameter("~/x_vector");
+  this->undeclare_parameter("~/y_vector");
+  this->undeclare_parameter("~/r_vector");
 
-  node_local_->undeclare_parameter("vx_vector");
-  node_local_->undeclare_parameter("vy_vector");
+  this->undeclare_parameter("~/vx_vector");
+  this->undeclare_parameter("~/vy_vector");
 
-  node_local_->undeclare_parameter("frame_id");
+  this->undeclare_parameter("~/frame_id");
 }
 
 void ObstaclePublisher::initialize() {
-  node_local_->declare_parameter("active", true);
-  node_local_->declare_parameter("reset", false);
+  this->declare_parameter("~/active", true);
+  this->declare_parameter("~/reset", false);
 
-  node_local_->declare_parameter("fusion_example", false);
-  node_local_->declare_parameter("fission_example", false);
+  this->declare_parameter("~/fusion_example", false);
+  this->declare_parameter("~/fission_example", false);
 
-  node_local_->declare_parameter("loop_rate", 10.0); // Hz ?
-  node_local_->declare_parameter("radius_margin", 0.25);
+  this->declare_parameter("~/loop_rate", 10.0); // Hz ?
+  this->declare_parameter("~/radius_margin", 0.25);
 
   // Initializes with empty vectors
-  node_local_->declare_parameter("x_vector", p_x_vector_); 
-  node_local_->declare_parameter("y_vector", p_y_vector_);
-  node_local_->declare_parameter("r_vector", p_r_vector_);
+  this->declare_parameter("~/x_vector", p_x_vector_); 
+  this->declare_parameter("~/y_vector", p_y_vector_);
+  this->declare_parameter("~/r_vector", p_r_vector_);
 
-  node_local_->declare_parameter("vx_vector", p_vx_vector_);
-  node_local_->declare_parameter("vy_vector", p_vy_vector_);
+  this->declare_parameter("~/vx_vector", p_vx_vector_);
+  this->declare_parameter("~/vy_vector", p_vy_vector_);
 
-  node_local_->declare_parameter("frame_id", "map");
+  this->declare_parameter("~/frame_id", "map");
 
   updateParams();
 }
@@ -114,29 +116,29 @@ void ObstaclePublisher::updateParams() {
   bool prev_active = p_active_;
   auto prev_sampling_time = p_sampling_time_;
 
-  p_active_ = node_local_->get_parameter("active").get_value<bool>();
-  p_reset_ = node_local_->get_parameter("reset").get_value<bool>();
+  p_active_ = this->get_parameter("~/active").get_value<bool>();
+  p_reset_ = this->get_parameter("~/reset").get_value<bool>();
 
-  p_fusion_example_ = node_local_->get_parameter("fusion_example").get_value<bool>();
-  p_fission_example_ = node_local_->get_parameter("fission_example").get_value<bool>();
+  p_fusion_example_ = this->get_parameter("~/fusion_example").get_value<bool>();
+  p_fission_example_ = this->get_parameter("~/fission_example").get_value<bool>();
 
-  p_loop_rate_ = node_local_->get_parameter("loop_rate").get_value<double>();
-  p_radius_margin_ = node_local_->get_parameter("radius_margin").get_value<double>();
+  p_loop_rate_ = this->get_parameter("~/loop_rate").get_value<double>();
+  p_radius_margin_ = this->get_parameter("~/radius_margin").get_value<double>();
 
-  p_x_vector_ = node_local_->get_parameter("x_vector").get_value<std::vector<double>>();
-  p_y_vector_ = node_local_->get_parameter("y_vector").get_value<std::vector<double>>();
-  p_r_vector_ = node_local_->get_parameter("r_vector").get_value<std::vector<double>>();
+  p_x_vector_ = this->get_parameter("~/x_vector").get_value<std::vector<double>>();
+  p_y_vector_ = this->get_parameter("~/y_vector").get_value<std::vector<double>>();
+  p_r_vector_ = this->get_parameter("~/r_vector").get_value<std::vector<double>>();
 
-  p_vx_vector_ = node_local_->get_parameter("vx_vector").get_value<std::vector<double>>();
-  p_vy_vector_ = node_local_->get_parameter("vy_vector").get_value<std::vector<double>>();
+  p_vx_vector_ = this->get_parameter("~/vx_vector").get_value<std::vector<double>>();
+  p_vy_vector_ = this->get_parameter("~/vy_vector").get_value<std::vector<double>>();
 
-  p_frame_id_ = node_local_->get_parameter("frame_id").get_value<string>();
+  p_frame_id_ = this->get_parameter("~/frame_id").get_value<string>();
 
   p_sampling_time_ = 1.0 / p_loop_rate_;
 
   if (p_active_ != prev_active) {
     if (p_active_) {
-      obstacle_pub_ = node_root_->create_publisher<msg::Obstacles>("obstacles", 10);
+      obstacle_pub_ = this->create_publisher<msg::Obstacles>("obstacles", 10);
     }
     else {
       obstacle_pub_ = nullptr;
@@ -146,7 +148,7 @@ void ObstaclePublisher::updateParams() {
   if (p_active_ && (p_active_ != prev_active || p_sampling_time_ != prev_sampling_time)) {
     // FIXME may create undefined behavior (timer destroyed while it could be calling ObstaclePublisher::timerCallback)
     // use mutex lock ?
-    timer_ = node_root_->create_wall_timer(
+    timer_ = this->create_wall_timer(
       rclcpp::Duration::from_seconds(p_sampling_time_).to_chrono<std::chrono::nanoseconds>(), // TODO find cleaner way to cast from double
       std::bind(&ObstaclePublisher::timerCallback, this)
     );
@@ -270,7 +272,7 @@ void ObstaclePublisher::fissionExample(double t) {
 }
 
 void ObstaclePublisher::publishObstacles() {
-  obstacles_.header.stamp = node_root_->now();
+  obstacles_.header.stamp = this->now();
   if (obstacle_pub_) {
     obstacle_pub_->publish(obstacles_);
   }
@@ -279,5 +281,5 @@ void ObstaclePublisher::publishObstacles() {
 void ObstaclePublisher::reset() {
   t_ = 0.0;
   p_reset_ = false;
-  node_local_->set_parameter({"reset", false});
+  this->set_parameter({"~/reset", false});
 }

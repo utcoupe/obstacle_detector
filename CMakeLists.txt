@@ -167,6 +167,13 @@ target_link_libraries(obstacle_tracker_node
 )
 ament_target_dependencies(obstacle_tracker_node rclcpp)
 
+
+add_executable(obstacle_publisher_node src/nodes/obstacle_publisher_node.cpp)
+target_link_libraries(obstacle_publisher_node
+  obstacle_publisher
+)
+ament_target_dependencies(obstacle_publisher_node rclcpp)
+
 #
 # Install libraries
 #
@@ -176,6 +183,7 @@ install(
     scans_merger
     obstacle_extractor
     obstacle_tracker
+    obstacle_publisher
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -190,6 +198,7 @@ install(
     scans_merger_node
     obstacle_extractor_node
     obstacle_tracker_node
+    obstacle_publisher_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

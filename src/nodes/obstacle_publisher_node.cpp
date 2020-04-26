@@ -30,28 +30,27 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/obstacle_publisher.h"
 
+#include <rclcpp/rclcpp.hpp>
+
 using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "obstacle_publisher", ros::init_options::NoRosout);
-  ros::NodeHandle nh("");
-  ros::NodeHandle nh_local("~");
+  rclcpp::init(argc, argv);
 
   try {
-    ROS_INFO("[Obstacle Publisher]: Initializing node");
-    ObstaclePublisher op(nh, nh_local);
-    ros::spin();
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[Obstacle Publisher]: Initializing node");
+    rclcpp::spin(std::make_shared<ObstaclePublisher>("obstacle_publisher"));
   }
   catch (const char* s) {
-    ROS_FATAL_STREAM("[Obstacle Publisher]: " << s);
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("rclcpp"), "[Obstacle Publisher]: " << s);
   }
   catch (...) {
-    ROS_FATAL_STREAM("[Obstacle Publisher]: Unexpected error");
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("rclcpp"), "[Obstacle Publisher]: Unexpected error");
   }
 
   return 0;
