@@ -35,6 +35,8 @@
 
 #include "processing_lidar_objects/scans_merger.h"
 
+#include <rclcpp/rclcpp.hpp>
+
 using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {

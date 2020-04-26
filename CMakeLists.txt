@@ -20,6 +20,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   )
 endif()
 
+if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+  add_compile_options(
+    -g
+    -Og
+  )
+endif()
+
 # Include AMENT build tool
 find_package(ament_cmake REQUIRED)
 
@@ -35,8 +42,12 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_kdl REQUIRED) # implicit dependency of tf2
 # find_package(tf2_msgs REQUIRED)
 # find_package(tf2_sensor_msgs REQUIRED)
+
+# Include extra dependencies
+find_package(Armadillo REQUIRED)
 
 # Generate msgs
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -75,11 +86,18 @@ rclcpp_components_register_nodes(scans_merger "${PROJECT_NAME}::ScansMerger")
 set(node_plugins "${node_plugins}${PROJECT_NAME}::ScansMerger;$<TARGET_FILE:scans_merge>\n")
 
 add_library(obstacle_extractor src/obstacle_extractor.cpp)
+target_link_libraries(obstacle_extractor
+  ${ARMADILLO_LIBRARIES}
+)
 ament_target_dependencies(obstacle_extractor
   rclcpp
   std_srvs
   sensor_msgs
   geometry_msgs
+  rclcpp_components
+  tf2
+  tf2_ros
+  tf2_kdl
 )
 
 add_library(obstacle_tracker src/obstacle_tracker.cpp)
@@ -132,6 +150,13 @@ target_link_libraries(scans_merger_node
 )
 ament_target_dependencies(scans_merger_node rclcpp)
 
+
+add_executable(obstacle_extractor_node src/nodes/obstacle_extractor_node.cpp)
+target_link_libraries(obstacle_extractor_node
+  obstacle_extractor
+)
+ament_target_dependencies(obstacle_extractor_node rclcpp)
+
 #
 # Install libraries
 #
@@ -139,6 +164,7 @@ ament_target_dependencies(scans_merger_node rclcpp)
 install(
   TARGETS
     scans_merger
+    obstacle_extractor
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -151,6 +177,7 @@ install(
 install(
   TARGETS
     scans_merger_node
+    obstacle_extractor_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

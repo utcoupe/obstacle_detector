@@ -47,75 +47,77 @@ using namespace processing_lidar_objects;
 
 const auto TRANSFORM_TIMEOUT = tf2::durationFromSec(0.1);
 
-ObstacleExtractor::ObstacleExtractor(rclcpp::Node::SharedPtr& node_root, rclcpp::Node::SharedPtr& node_local):
-  node_root_(node_root),
-  node_local_(node_local),
-  tf_buffer_(node_root->get_clock()),
+ObstacleExtractor::ObstacleExtractor(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options
+):
+  Node(node_name, node_options),
+  tf_buffer_(this->get_clock()),
   tf_listener_(tf_buffer_)
 {
   p_active_ = false;
 
-  params_srv_ = node_local_->create_service<std_srvs::srv::Empty>(
-    "params",
+  params_srv_ = this->create_service<std_srvs::srv::Empty>(
+    "~/params",
     std::bind(&processing_lidar_objects::ObstacleExtractor::updateParamsCallback, this, _1, _2)
   );
   initialize();
 }
 
 ObstacleExtractor::~ObstacleExtractor() {
-  node_local_->undeclare_parameter("active");
-  node_local_->undeclare_parameter("use_scan");
-  node_local_->undeclare_parameter("use_pcl");
+  this->undeclare_parameter("~/active");
+  this->undeclare_parameter("~/use_scan");
+  this->undeclare_parameter("~/use_pcl");
 
-  node_local_->undeclare_parameter("use_split_and_merge");
-  node_local_->undeclare_parameter("circles_from_visibles");
-  node_local_->undeclare_parameter("discard_converted_segments");
-  node_local_->undeclare_parameter("transform_coordinates");
+  this->undeclare_parameter("~/use_split_and_merge");
+  this->undeclare_parameter("~/circles_from_visibles");
+  this->undeclare_parameter("~/discard_converted_segments");
+  this->undeclare_parameter("~/transform_coordinates");
 
-  node_local_->undeclare_parameter("min_group_points");
+  this->undeclare_parameter("~/min_group_points");
 
-  node_local_->undeclare_parameter("max_group_distance");
-  node_local_->undeclare_parameter("distance_proportion");
-  node_local_->undeclare_parameter("max_split_distance");
-  node_local_->undeclare_parameter("max_merge_separation");
-  node_local_->undeclare_parameter("max_merge_spread");
-  node_local_->undeclare_parameter("max_circle_radius");
-  node_local_->undeclare_parameter("radius_enlargement");
+  this->undeclare_parameter("~/max_group_distance");
+  this->undeclare_parameter("~/distance_proportion");
+  this->undeclare_parameter("~/max_split_distance");
+  this->undeclare_parameter("~/max_merge_separation");
+  this->undeclare_parameter("~/max_merge_spread");
+  this->undeclare_parameter("~/max_circle_radius");
+  this->undeclare_parameter("~/radius_enlargement");
 
-  node_local_->undeclare_parameter("min_x_limit");
-  node_local_->undeclare_parameter("max_x_limit");
-  node_local_->undeclare_parameter("min_y_limit");
-  node_local_->undeclare_parameter("max_y_limit");
+  this->undeclare_parameter("~/min_x_limit");
+  this->undeclare_parameter("~/max_x_limit");
+  this->undeclare_parameter("~/min_y_limit");
+  this->undeclare_parameter("~/max_y_limit");
 
-  node_local_->undeclare_parameter("frame_id");
+  this->undeclare_parameter("~/frame_id");
 }
 
 void ObstacleExtractor::initialize() {
-  node_local_->declare_parameter("active", true);
-  node_local_->declare_parameter("use_scan", false);
-  node_local_->declare_parameter("use_pcl", true);
+  this->declare_parameter("~/active", true);
+  this->declare_parameter("~/use_scan", false);
+  this->declare_parameter("~/use_pcl", true);
 
-  node_local_->declare_parameter("use_split_and_merge", true);
-  node_local_->declare_parameter("circles_from_visibles", true);
-  node_local_->declare_parameter("discard_converted_segments", true);
-  node_local_->declare_parameter("transform_coordinates", true);
+  this->declare_parameter("~/use_split_and_merge", true);
+  this->declare_parameter("~/circles_from_visibles", true);
+  this->declare_parameter("~/discard_converted_segments", true);
+  this->declare_parameter("~/transform_coordinates", true);
 
-  node_local_->declare_parameter("min_group_points", 5);
+  this->declare_parameter("~/min_group_points", 5);
 
-  node_local_->declare_parameter("max_group_distance", 0.1);
-  node_local_->declare_parameter("distance_proportion", 0.00628);
-  node_local_->declare_parameter("max_split_distance", 0.2);
-  node_local_->declare_parameter("max_merge_separation", 0.2);
-  node_local_->declare_parameter("max_merge_spread", 0.2);
-  node_local_->declare_parameter("max_circle_radius", 0.6);
-  node_local_->declare_parameter("radius_enlargement", 0.25);
+  this->declare_parameter("~/max_group_distance", 0.1);
+  this->declare_parameter("~/distance_proportion", 0.00628);
+  this->declare_parameter("~/max_split_distance", 0.2);
+  this->declare_parameter("~/max_merge_separation", 0.2);
+  this->declare_parameter("~/max_merge_spread", 0.2);
+  this->declare_parameter("~/max_circle_radius", 0.6);
+  this->declare_parameter("~/radius_enlargement", 0.25);
 
-  node_local_->declare_parameter("min_x_limit", -10.0);
-  node_local_->declare_parameter("max_x_limit", 10.0);
-  node_local_->declare_parameter("min_y_limit", -10.0);
-  node_local_->declare_parameter("max_y_limit", 10.0);
+  this->declare_parameter("~/min_x_limit", -10.0);
+  this->declare_parameter("~/max_x_limit", 10.0);
+  this->declare_parameter("~/min_y_limit", -10.0);
+  this->declare_parameter("~/max_y_limit", 10.0);
 
-  node_local_->declare_parameter("frame_id", "map");
+  this->declare_parameter("~/frame_id", "map");
 
   updateParams();
 }
@@ -130,55 +132,55 @@ void ObstacleExtractor::updateParamsCallback(
 void ObstacleExtractor::updateParams() {
   bool prev_active = p_active_;
 
-  p_active_ = node_local_->get_parameter("active").get_value<bool>();
-  p_use_scan_ = node_local_->get_parameter("use_scan").get_value<bool>();
-  p_use_pcl_ = node_local_->get_parameter("use_pcl").get_value<bool>();
+  p_active_ = this->get_parameter("~/active").get_value<bool>();
+  p_use_scan_ = this->get_parameter("~/use_scan").get_value<bool>();
+  p_use_pcl_ = this->get_parameter("~/use_pcl").get_value<bool>();
 
-  p_use_split_and_merge_ = node_local_->get_parameter("use_split_and_merge").get_value<bool>();
-  p_circles_from_visibles_ = node_local_->get_parameter("circles_from_visibles").get_value<bool>();
-  p_discard_converted_segments_ = node_local_->get_parameter("discard_converted_segments").get_value<bool>();
-  p_transform_coordinates_ = node_local_->get_parameter("transform_coordinates").get_value<bool>();
+  p_use_split_and_merge_ = this->get_parameter("~/use_split_and_merge").get_value<bool>();
+  p_circles_from_visibles_ = this->get_parameter("~/circles_from_visibles").get_value<bool>();
+  p_discard_converted_segments_ = this->get_parameter("~/discard_converted_segments").get_value<bool>();
+  p_transform_coordinates_ = this->get_parameter("~/transform_coordinates").get_value<bool>();
 
-  p_min_group_points_ = node_local_->get_parameter("min_group_points").get_value<int>();
+  p_min_group_points_ = this->get_parameter("~/min_group_points").get_value<int>();
 
-  p_max_group_distance_ = node_local_->get_parameter("max_group_distance").get_value<double>();
-  p_distance_proportion_ = node_local_->get_parameter("distance_proportion").get_value<double>();
-  p_max_split_distance_ = node_local_->get_parameter("max_split_distance").get_value<double>();
-  p_max_merge_separation_ = node_local_->get_parameter("max_merge_separation").get_value<double>();
-  p_max_merge_spread_ = node_local_->get_parameter("max_merge_spread").get_value<double>();
-  p_max_circle_radius_ = node_local_->get_parameter("max_circle_radius").get_value<double>();
-  p_radius_enlargement_ = node_local_->get_parameter("radius_enlargement").get_value<double>();
+  p_max_group_distance_ = this->get_parameter("~/max_group_distance").get_value<double>();
+  p_distance_proportion_ = this->get_parameter("~/distance_proportion").get_value<double>();
+  p_max_split_distance_ = this->get_parameter("~/max_split_distance").get_value<double>();
+  p_max_merge_separation_ = this->get_parameter("~/max_merge_separation").get_value<double>();
+  p_max_merge_spread_ = this->get_parameter("~/max_merge_spread").get_value<double>();
+  p_max_circle_radius_ = this->get_parameter("~/max_circle_radius").get_value<double>();
+  p_radius_enlargement_ = this->get_parameter("~/radius_enlargement").get_value<double>();
 
-  p_min_x_limit_ = node_local_->get_parameter("min_x_limit").get_value<double>();
-  p_max_x_limit_ = node_local_->get_parameter("max_x_limit").get_value<double>();
-  p_min_y_limit_ = node_local_->get_parameter("min_y_limit").get_value<double>();
-  p_max_y_limit_ = node_local_->get_parameter("max_y_limit").get_value<double>();
+  p_min_x_limit_ = this->get_parameter("~/min_x_limit").get_value<double>();
+  p_max_x_limit_ = this->get_parameter("~/max_x_limit").get_value<double>();
+  p_min_y_limit_ = this->get_parameter("~/min_y_limit").get_value<double>();
+  p_max_y_limit_ = this->get_parameter("~/max_y_limit").get_value<double>();
 
-  p_frame_id_ = node_local_->get_parameter("frame_id").get_value<string>();
+  p_frame_id_ = this->get_parameter("~/frame_id").get_value<string>();
 
   if (p_active_ != prev_active) {
     if (p_active_) {
       if (p_use_scan_) {
-        scan_sub_ = node_root_->create_subscription<sensor_msgs::msg::LaserScan>(
+        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
           "scan_transformed",
           10,
           std::bind(&ObstacleExtractor::scanCallback, this, _1)
         );
       } else if (p_use_pcl_) {
-        pcl_sub_ = node_root_->create_subscription<sensor_msgs::msg::PointCloud>(
+        pcl_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud>(
           "pcl",
           10,
           std::bind(&ObstacleExtractor::pclCallback, this, _1)
         );
       }
 
-      obstacles_pub_ = node_root_->create_publisher<processing_lidar_objects::msg::Obstacles>("raw_obstacles", 10);
+      obstacles_pub_ = this->create_publisher<processing_lidar_objects::msg::Obstacles>("raw_obstacles", 10);
     }
     else {
       // Send empty message
       processing_lidar_objects::msg::Obstacles obstacles_msg{};
       obstacles_msg.header.frame_id = p_frame_id_;
-      obstacles_msg.header.stamp = node_root_->now();
+      obstacles_msg.header.stamp = this->now();
       obstacles_pub_->publish(obstacles_msg);
 
       scan_sub_ = nullptr;

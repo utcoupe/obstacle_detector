@@ -35,6 +35,9 @@
 
 #pragma once
 
+// This header wasn't available in ROS2 Eloquent as this time of writing
+#include "rclcpp_components/visibility_control.hpp"
+
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
 #include <tf2_ros/transform_listener.h>
@@ -43,7 +46,6 @@
 #include <sensor_msgs/msg/point_cloud.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <tf2/convert.h>
-// #include <tf/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <processing_lidar_objects/msg/obstacles.hpp>
@@ -56,11 +58,17 @@
 namespace processing_lidar_objects
 {
 
-class ObstacleExtractor
+class ObstacleExtractor : public rclcpp::Node
 {
 public:
-  ObstacleExtractor(rclcpp::Node::SharedPtr& node_root, rclcpp::Node::SharedPtr& node_local);
-  ~ObstacleExtractor();
+  RCLCPP_COMPONENTS_PUBLIC
+  ObstacleExtractor(
+    std::string node_name,
+    const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions()
+  );
+
+  RCLCPP_COMPONENTS_PUBLIC
+  virtual ~ObstacleExtractor();
 
 private:
   void updateParamsCallback(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
@@ -83,9 +91,6 @@ private:
   void detectCircles();
   void mergeCircles();
   bool compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle);
-
-  rclcpp::Node::SharedPtr node_root_;
-  rclcpp::Node::SharedPtr node_local_;
 
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud>::SharedPtr pcl_sub_;

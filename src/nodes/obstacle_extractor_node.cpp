@@ -30,28 +30,28 @@
  */
 
 /*
- * Author: Mateusz Przybyla
+ * Authors: Mateusz Przybyla, Gaëtan Blond
  */
 
 #include "processing_lidar_objects/obstacle_extractor.h"
 
+#include <rclcpp/rclcpp.hpp>
+
 using namespace processing_lidar_objects;
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "obstacle_extractor", ros::init_options::NoRosout);
-  ros::NodeHandle nh("");
-  ros::NodeHandle nh_local("~");
+  rclcpp::init(argc, argv);
 
   try {
-    ROS_INFO("[Obstacle Extractor]: Initializing node");
-    ObstacleExtractor od(nh, nh_local);
-    ros::spin();
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[Obstacle Extractor]: Initializing node");
+    rclcpp::spin(std::make_shared<ObstacleExtractor>("obstacle_extractor"));
+    rclcpp::shutdown();
   }
   catch (const char* s) {
-    ROS_FATAL_STREAM("[Obstacle Extractor]: "  << s);
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("rclcpp"), "[Obstacle Extractor]: "  << s);
   }
   catch (...) {
-    ROS_FATAL_STREAM("[Obstacle Extractor]: Unexpected error");
+    RCLCPP_FATAL_STREAM(rclcpp::get_logger("rclcpp"), "[Obstacle Extractor]: Unexpected error");
   }
 
   return 0;
