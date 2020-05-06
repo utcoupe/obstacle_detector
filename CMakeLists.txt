@@ -220,6 +220,17 @@ install(
 )
 
 #
+# Install config and launch folders
+#
+
+install(
+  DIRECTORY
+    config
+    launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+#
 # Extra install instructions
 #
 

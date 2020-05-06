@@ -72,59 +72,59 @@ ObstacleExtractor::ObstacleExtractor(
 }
 
 ObstacleExtractor::~ObstacleExtractor() {
-  this->undeclare_parameter("~/active");
-  this->undeclare_parameter("~/use_scan");
-  this->undeclare_parameter("~/use_pcl");
+  this->undeclare_parameter("active");
+  this->undeclare_parameter("use_scan");
+  this->undeclare_parameter("use_pcl");
 
-  this->undeclare_parameter("~/use_split_and_merge");
-  this->undeclare_parameter("~/circles_from_visibles");
-  this->undeclare_parameter("~/discard_converted_segments");
-  this->undeclare_parameter("~/transform_coordinates");
+  this->undeclare_parameter("use_split_and_merge");
+  this->undeclare_parameter("circles_from_visibles");
+  this->undeclare_parameter("discard_converted_segments");
+  this->undeclare_parameter("transform_coordinates");
 
-  this->undeclare_parameter("~/min_group_points");
+  this->undeclare_parameter("min_group_points");
 
-  this->undeclare_parameter("~/max_group_distance");
-  this->undeclare_parameter("~/distance_proportion");
-  this->undeclare_parameter("~/max_split_distance");
-  this->undeclare_parameter("~/max_merge_separation");
-  this->undeclare_parameter("~/max_merge_spread");
-  this->undeclare_parameter("~/max_circle_radius");
-  this->undeclare_parameter("~/radius_enlargement");
+  this->undeclare_parameter("max_group_distance");
+  this->undeclare_parameter("distance_proportion");
+  this->undeclare_parameter("max_split_distance");
+  this->undeclare_parameter("max_merge_separation");
+  this->undeclare_parameter("max_merge_spread");
+  this->undeclare_parameter("max_circle_radius");
+  this->undeclare_parameter("radius_enlargement");
 
-  this->undeclare_parameter("~/min_x_limit");
-  this->undeclare_parameter("~/max_x_limit");
-  this->undeclare_parameter("~/min_y_limit");
-  this->undeclare_parameter("~/max_y_limit");
+  this->undeclare_parameter("min_x_limit");
+  this->undeclare_parameter("max_x_limit");
+  this->undeclare_parameter("min_y_limit");
+  this->undeclare_parameter("max_y_limit");
 
-  this->undeclare_parameter("~/frame_id");
+  this->undeclare_parameter("frame_id");
 }
 
 void ObstacleExtractor::initialize() {
-  this->declare_parameter("~/active", true);
-  this->declare_parameter("~/use_scan", false);
-  this->declare_parameter("~/use_pcl", true);
+  this->declare_parameter("active", true);
+  this->declare_parameter("use_scan", false);
+  this->declare_parameter("use_pcl", true);
 
-  this->declare_parameter("~/use_split_and_merge", true);
-  this->declare_parameter("~/circles_from_visibles", true);
-  this->declare_parameter("~/discard_converted_segments", true);
-  this->declare_parameter("~/transform_coordinates", true);
+  this->declare_parameter("use_split_and_merge", true);
+  this->declare_parameter("circles_from_visibles", true);
+  this->declare_parameter("discard_converted_segments", true);
+  this->declare_parameter("transform_coordinates", true);
 
-  this->declare_parameter("~/min_group_points", 5);
+  this->declare_parameter("min_group_points", 5);
 
-  this->declare_parameter("~/max_group_distance", 0.1);
-  this->declare_parameter("~/distance_proportion", 0.00628);
-  this->declare_parameter("~/max_split_distance", 0.2);
-  this->declare_parameter("~/max_merge_separation", 0.2);
-  this->declare_parameter("~/max_merge_spread", 0.2);
-  this->declare_parameter("~/max_circle_radius", 0.6);
-  this->declare_parameter("~/radius_enlargement", 0.25);
+  this->declare_parameter("max_group_distance", 0.1);
+  this->declare_parameter("distance_proportion", 0.00628);
+  this->declare_parameter("max_split_distance", 0.2);
+  this->declare_parameter("max_merge_separation", 0.2);
+  this->declare_parameter("max_merge_spread", 0.2);
+  this->declare_parameter("max_circle_radius", 0.6);
+  this->declare_parameter("radius_enlargement", 0.25);
 
-  this->declare_parameter("~/min_x_limit", -10.0);
-  this->declare_parameter("~/max_x_limit", 10.0);
-  this->declare_parameter("~/min_y_limit", -10.0);
-  this->declare_parameter("~/max_y_limit", 10.0);
+  this->declare_parameter("min_x_limit", -10.0);
+  this->declare_parameter("max_x_limit", 10.0);
+  this->declare_parameter("min_y_limit", -10.0);
+  this->declare_parameter("max_y_limit", 10.0);
 
-  this->declare_parameter("~/frame_id", "map");
+  this->declare_parameter("frame_id", "map");
 
   updateParams();
 }
@@ -139,31 +139,31 @@ void ObstacleExtractor::updateParamsCallback(
 void ObstacleExtractor::updateParams() {
   bool prev_active = p_active_;
 
-  p_active_ = this->get_parameter("~/active").get_value<bool>();
-  p_use_scan_ = this->get_parameter("~/use_scan").get_value<bool>();
-  p_use_pcl_ = this->get_parameter("~/use_pcl").get_value<bool>();
+  p_active_ = this->get_parameter("active").get_value<bool>();
+  p_use_scan_ = this->get_parameter("use_scan").get_value<bool>();
+  p_use_pcl_ = this->get_parameter("use_pcl").get_value<bool>();
 
-  p_use_split_and_merge_ = this->get_parameter("~/use_split_and_merge").get_value<bool>();
-  p_circles_from_visibles_ = this->get_parameter("~/circles_from_visibles").get_value<bool>();
-  p_discard_converted_segments_ = this->get_parameter("~/discard_converted_segments").get_value<bool>();
-  p_transform_coordinates_ = this->get_parameter("~/transform_coordinates").get_value<bool>();
+  p_use_split_and_merge_ = this->get_parameter("use_split_and_merge").get_value<bool>();
+  p_circles_from_visibles_ = this->get_parameter("circles_from_visibles").get_value<bool>();
+  p_discard_converted_segments_ = this->get_parameter("discard_converted_segments").get_value<bool>();
+  p_transform_coordinates_ = this->get_parameter("transform_coordinates").get_value<bool>();
 
-  p_min_group_points_ = this->get_parameter("~/min_group_points").get_value<int>();
+  p_min_group_points_ = this->get_parameter("min_group_points").get_value<int>();
 
-  p_max_group_distance_ = this->get_parameter("~/max_group_distance").get_value<double>();
-  p_distance_proportion_ = this->get_parameter("~/distance_proportion").get_value<double>();
-  p_max_split_distance_ = this->get_parameter("~/max_split_distance").get_value<double>();
-  p_max_merge_separation_ = this->get_parameter("~/max_merge_separation").get_value<double>();
-  p_max_merge_spread_ = this->get_parameter("~/max_merge_spread").get_value<double>();
-  p_max_circle_radius_ = this->get_parameter("~/max_circle_radius").get_value<double>();
-  p_radius_enlargement_ = this->get_parameter("~/radius_enlargement").get_value<double>();
+  p_max_group_distance_ = this->get_parameter("max_group_distance").get_value<double>();
+  p_distance_proportion_ = this->get_parameter("distance_proportion").get_value<double>();
+  p_max_split_distance_ = this->get_parameter("max_split_distance").get_value<double>();
+  p_max_merge_separation_ = this->get_parameter("max_merge_separation").get_value<double>();
+  p_max_merge_spread_ = this->get_parameter("max_merge_spread").get_value<double>();
+  p_max_circle_radius_ = this->get_parameter("max_circle_radius").get_value<double>();
+  p_radius_enlargement_ = this->get_parameter("radius_enlargement").get_value<double>();
 
-  p_min_x_limit_ = this->get_parameter("~/min_x_limit").get_value<double>();
-  p_max_x_limit_ = this->get_parameter("~/max_x_limit").get_value<double>();
-  p_min_y_limit_ = this->get_parameter("~/min_y_limit").get_value<double>();
-  p_max_y_limit_ = this->get_parameter("~/max_y_limit").get_value<double>();
+  p_min_x_limit_ = this->get_parameter("min_x_limit").get_value<double>();
+  p_max_x_limit_ = this->get_parameter("max_x_limit").get_value<double>();
+  p_min_y_limit_ = this->get_parameter("min_y_limit").get_value<double>();
+  p_max_y_limit_ = this->get_parameter("max_y_limit").get_value<double>();
 
-  p_frame_id_ = this->get_parameter("~/frame_id").get_value<string>();
+  p_frame_id_ = this->get_parameter("frame_id").get_value<string>();
 
   if (p_active_ != prev_active) {
     if (p_active_) {

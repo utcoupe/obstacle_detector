@@ -1,0 +1,22 @@
+# obstacle_extractor parameters
+active: true
+use_scan: true
+use_pcl: false
+
+use_split_and_merge: false
+circles_from_visibles: true
+discard_converted_segments: false
+transform_coordinates: true
+
+min_group_points: 10
+
+max_group_distance: 0.05
+distance_proportion: 0.00628
+max_split_distance: 0.05
+max_merge_separation: 0.05
+max_merge_spread: 0.05
+
+max_circle_radius: 0.0 # Max circles size for recognition
+radius_enlargement: 0.00 # Optional margin
+
+frame_id: map

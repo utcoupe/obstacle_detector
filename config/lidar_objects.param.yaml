@@ -1,0 +1,68 @@
+# List of parameters that will be passed to components
+# in lidar_objects.launch.py
+
+# Kind of ideal file, but does not work yet as of ROS2 Eloquent
+# (See https://github.com/ros2/rclcpp/issues/715)
+
+processing_lidar_objects:
+  /**: # matches all nodes (but it is NOT a global parameter)
+    ros__parameters:
+      use_sim_time: false
+
+  scans_merger:
+    ros__parameters:
+      active: true
+      publish_scan: true
+      publish_pcl: true
+
+      ranges_num: 1000
+
+      min_scanner_range: 0.05
+      max_scanner_range: 2.0
+
+      min_x_range: 0.0
+      max_x_range: 10.0
+      min_y_range: -10.0
+      max_y_range: 10.0
+
+      fixed_frame_id: laser
+      target_frame_id: laser
+    
+  obstacle_extractor:
+    ros__parameters:
+      active: true
+      use_scan: true
+      use_pcl: false
+
+      use_split_and_merge: false
+      circles_from_visibles: true
+      discard_converted_segments: false
+      transform_coordinates: true
+
+      min_group_points: 10
+
+      max_group_distance: 0.05
+      distance_proportion: 0.00628
+      max_split_distance: 0.05
+      max_merge_separation: 0.05
+      max_merge_spread: 0.05
+
+      max_circle_radius: 0.0 # Max circles size for recognition
+      radius_enlargement: 0.00 # Optional margin
+
+      frame_id: map
+  
+  obstacle_tracker:
+    ros__parameters:
+      active: true
+
+      loop_rate: 20.0 # Hz refresh rate
+      tracking_duration: 0.5 # Time before destroying tracked circles
+      min_correspondance_cost: 0.6 # Max distance for updating an old circle
+      std_correspondance_dev: 0.15
+      process_variance: 0.1
+      process_rate_variance: 1.0
+      measurement_variance: 1.0
+
+      frame_id: map
+      

@@ -71,35 +71,35 @@ ObstacleTracker::ObstacleTracker(
 }
 
 ObstacleTracker::~ObstacleTracker() {
-  this->undeclare_parameter("~/active");
-  this->undeclare_parameter("~/copy_segments");
+  this->undeclare_parameter("active");
+  this->undeclare_parameter("copy_segments");
 
-  this->undeclare_parameter("~/loop_rate");
+  this->undeclare_parameter("loop_rate");
 
-  this->undeclare_parameter("~/tracking_duration");
-  this->undeclare_parameter("~/min_correspondence_cost");
-  this->undeclare_parameter("~/std_correspondence_dev");
-  this->undeclare_parameter("~/process_variance");
-  this->undeclare_parameter("~/process_rate_variance");
-  this->undeclare_parameter("~/measurement_variance");
+  this->undeclare_parameter("tracking_duration");
+  this->undeclare_parameter("min_correspondence_cost");
+  this->undeclare_parameter("std_correspondence_dev");
+  this->undeclare_parameter("process_variance");
+  this->undeclare_parameter("process_rate_variance");
+  this->undeclare_parameter("measurement_variance");
 
-  this->undeclare_parameter("~/frame_id");
+  this->undeclare_parameter("frame_id");
 }
 
 void ObstacleTracker::initialize() {
-  this->declare_parameter("~/active", true);
-  this->declare_parameter("~/copy_segments", true);
+  this->declare_parameter("active", true);
+  this->declare_parameter("copy_segments", true);
 
-  this->declare_parameter("~/loop_rate", 100.0);
+  this->declare_parameter("loop_rate", 100.0);
 
-  this->declare_parameter("~/tracking_duration", 2.0);
-  this->declare_parameter("~/min_correspondence_cost", 0.3);
-  this->declare_parameter("~/std_correspondence_dev", 0.15);
-  this->declare_parameter("~/process_variance", 0.01);
-  this->declare_parameter("~/process_rate_variance", 0.1);
-  this->declare_parameter("~/measurement_variance", 1.0);
+  this->declare_parameter("tracking_duration", 2.0);
+  this->declare_parameter("min_correspondence_cost", 0.3);
+  this->declare_parameter("std_correspondence_dev", 0.15);
+  this->declare_parameter("process_variance", 0.01);
+  this->declare_parameter("process_rate_variance", 0.1);
+  this->declare_parameter("measurement_variance", 1.0);
 
-  this->declare_parameter("~/frame_id", "map");
+  this->declare_parameter("frame_id", "map");
 
   updateParams();
 }
@@ -115,21 +115,21 @@ void ObstacleTracker::updateParams() {
   bool prev_active = p_active_;
   auto prev_sampling_time = p_sampling_time_;
 
-  p_active_ = this->get_parameter("~/active").get_value<bool>();
-  p_copy_segments_ = this->get_parameter("~/copy_segments").get_value<bool>();
+  p_active_ = this->get_parameter("active").get_value<bool>();
+  p_copy_segments_ = this->get_parameter("copy_segments").get_value<bool>();
 
-  p_loop_rate_ = this->get_parameter("~/loop_rate").get_value<double>();
+  p_loop_rate_ = this->get_parameter("loop_rate").get_value<double>();
   p_sampling_time_ = 1.0 / p_loop_rate_;
   p_sensor_rate_ = HOKUYO_SENSOR_RATE_HZ;
 
-  p_tracking_duration_ = this->get_parameter("~/tracking_duration").get_value<double>();
-  p_min_correspondence_cost_ = this->get_parameter("~/min_correspondence_cost").get_value<double>();
-  p_std_correspondence_dev_ = this->get_parameter("~/std_correspondence_dev").get_value<double>();
-  p_process_variance_ = this->get_parameter("~/process_variance").get_value<double>();
-  p_process_rate_variance_ = this->get_parameter("~/process_rate_variance").get_value<double>();
-  p_measurement_variance_ = this->get_parameter("~/measurement_variance").get_value<double>();
+  p_tracking_duration_ = this->get_parameter("tracking_duration").get_value<double>();
+  p_min_correspondence_cost_ = this->get_parameter("min_correspondence_cost").get_value<double>();
+  p_std_correspondence_dev_ = this->get_parameter("std_correspondence_dev").get_value<double>();
+  p_process_variance_ = this->get_parameter("process_variance").get_value<double>();
+  p_process_rate_variance_ = this->get_parameter("process_rate_variance").get_value<double>();
+  p_measurement_variance_ = this->get_parameter("measurement_variance").get_value<double>();
 
-  p_frame_id_ = this->get_parameter("~/frame_id").get_value<string>();
+  p_frame_id_ = this->get_parameter("frame_id").get_value<string>();
   obstacles_.header.frame_id = p_frame_id_;
 
   TrackedObstacle::setSamplingTime(p_sampling_time_);

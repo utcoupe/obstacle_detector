@@ -1,0 +1,12 @@
+# obstacle_tracker parameters
+active: true
+
+loop_rate: 20.0 # Hz refresh rate
+tracking_duration: 0.5 # Time before destroying tracked circles
+min_correspondance_cost: 0.6 # Max distance for updating an old circle
+std_correspondance_dev: 0.15
+process_variance: 0.1
+process_rate_variance: 1.0
+measurement_variance: 1.0
+
+frame_id: map
