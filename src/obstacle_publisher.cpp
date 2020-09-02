@@ -70,44 +70,44 @@ ObstaclePublisher::ObstaclePublisher(
 }
 
 ObstaclePublisher::~ObstaclePublisher() {
-  this->undeclar_parameter("active");
-  this->undeclar_parameter("reset");
+  this->undeclare_parameter("active");
+  this->undeclare_parameter("reset");
 
-  this->undeclar_parameter("fusion_example");
-  this->undeclar_parameter("fission_example");
+  this->undeclare_parameter("fusion_example");
+  this->undeclare_parameter("fission_example");
 
-  this->undeclar_parameter("loop_rate");
-  this->undeclar_parameter("radius_margin");
+  this->undeclare_parameter("loop_rate");
+  this->undeclare_parameter("radius_margin");
 
-  this->undeclar_parameter("x_vector");
-  this->undeclar_parameter("y_vector");
-  this->undeclar_parameter("r_vector");
+  this->undeclare_parameter("x_vector");
+  this->undeclare_parameter("y_vector");
+  this->undeclare_parameter("r_vector");
 
-  this->undeclar_parameter("vx_vector");
-  this->undeclar_parameter("vy_vector");
+  this->undeclare_parameter("vx_vector");
+  this->undeclare_parameter("vy_vector");
 
-  this->undeclar_parameter("frame_id");
+  this->undeclare_parameter("frame_id");
 }
 
 void ObstaclePublisher::initialize() {
-  this->declar_parameter("active", true);
-  this->declar_parameter("reset", false);
+  this->declare_parameter("active", true);
+  this->declare_parameter("reset", false);
 
-  this->declar_parameter("fusion_example", false);
-  this->declar_parameter("fission_example", false);
+  this->declare_parameter("fusion_example", false);
+  this->declare_parameter("fission_example", false);
 
-  this->declar_parameter("loop_rate", 10.0); // Hz ?
-  this->declar_parameter("radius_margin", 0.25);
+  this->declare_parameter("loop_rate", 10.0); // Hz ?
+  this->declare_parameter("radius_margin", 0.25);
 
   // Initializes with empty vectors
-  this->declar_parameter("x_vector", p_x_vector_); 
-  this->declar_parameter("y_vector", p_y_vector_);
-  this->declar_parameter("r_vector", p_r_vector_);
+  this->declare_parameter("x_vector", p_x_vector_); 
+  this->declare_parameter("y_vector", p_y_vector_);
+  this->declare_parameter("r_vector", p_r_vector_);
 
-  this->declar_parameter("vx_vector", p_vx_vector_);
-  this->declar_parameter("vy_vector", p_vy_vector_);
+  this->declare_parameter("vx_vector", p_vx_vector_);
+  this->declare_parameter("vy_vector", p_vy_vector_);
 
-  this->declar_parameter("frame_id", "map");
+  this->declare_parameter("frame_id", "map");
 
   updateParams();
 }
